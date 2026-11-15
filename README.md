@@ -52,7 +52,7 @@ rakitan maupun ekspor, dan muncul di daftar "Dihapus" untuk dipulihkan.
 Tombol **Komponen…** di tab Panel 2D (atau `box components` / `box component`) menaruh potongan
 standar sebagai satu grup yang bergerak dan terhapus bersama: lubang baut M2–M6, 4 lubang baut PCB,
 kipas PC 40–120 mm (bukaan + 4 baut), tombol bulat Ø12–30, LCD 16×2, jendela layar + 4 baut,
-soket kotak + 2 baut, port USB betina (A/B/Micro/C, cangkang + bukaan), OLED 0,96 inci SPI, dan ventilasi heksagonal. Pratinjau dan ukuran dihitung backend.
+soket kotak + 2 baut, port USB betina (A/B/Micro/C, cangkang + bukaan), OLED 0,96 inci SPI, soket AC IEC C14, dan ventilasi heksagonal. Pratinjau dan ukuran dihitung backend.
 
 ```
 box components                                          daftar dan parameternya

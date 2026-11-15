@@ -110,6 +110,11 @@ def _oled(p):
             _rect(0, p["gy"] + p["ay"], p["aw"] + p["m"], p["ah"] + p["m"])] +            ([_circle(x * sx / 2, y * sy / 2, p["d"]) for x in (-1, 1) for y in (-1, 1)] if p["d"] > 0 else [])
 
 
+def _iec(p):
+    """Inlet AC IEC C14 / C13 (3 pin) tipe panel-mount: flensa (garis bantu), bukaan badan, dan 2 baut."""
+    return [_rect(0, 0, p["fw"], p["fh"], "guide"), _rect(0, 0, p["w"], p["h"])] +            ([_circle(x * p["sp"] / 2, 0, p["d"]) for x in (-1, 1)] if p["sp"] > 0 else [])
+
+
 def _vent(p):
     W, H, d, pitch = p["w"], p["h"], p["d"], p["pitch"]
     if d >= min(W, H) or pitch <= d:
@@ -184,6 +189,13 @@ LIB = {
                                 _num("aw", "Lebar area aktif (mm)", 21.74, 0.01), _num("ah", "Tinggi area aktif (mm)", 10.86, 0.01),
                                 _num("ay", "Geser area aktif dari kaca (mm)", 0, 0.1, -10),
                                 _num("m", "Tambahan jendela potong (mm)", 1.0, 0.1, 0)], "build": _oled},
+    "iec-c14": {"label": "Soket AC IEC C14/C13 3 pin (panel mount, 250V 10A)",
+                "note": "Flensa 50 x 27,3 mm (kedalaman badan sekitar 20,9 mm, tidak ikut digambar), 2 baut berjarak 40 mm. Bukaan badan 27,5 x 19,5 mm "
+                        "adalah ukuran umum soket tipe baut: ukur soket Anda (beda antar pabrik), terutama bila ada saklar/sekering di dalamnya. "
+                        "Tipe snap-in: isi Jarak baut 0 dan ukur bukaannya.",
+                "params": [_num("fw", "Lebar flensa (mm)", 50, 0.1), _num("fh", "Tinggi flensa (mm)", 27.3, 0.1),
+                           _num("w", "Lebar bukaan badan (mm)", 27.5, 0.1), _num("h", "Tinggi bukaan badan (mm)", 19.5, 0.1),
+                           _num("sp", "Jarak 2 baut (mm, 0 = tanpa)", 40, 0.5, 0), _sel("d", "Baut", SCREWS, 3.4)], "build": _iec},
     "ventilasi": {"label": "Ventilasi lubang bulat (heksagonal)", "note": "Lubang tersusun selang-seling dalam area persegi, dipusatkan.",
                   "params": [_num("w", "Lebar area (mm)", 60, 1, 5), _num("h", "Tinggi area (mm)", 40, 1, 5),
                              _num("d", "Diameter lubang (mm)", 6, 0.5), _num("pitch", "Jarak pusat ke pusat (mm)", 9, 0.5)],
