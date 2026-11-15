@@ -1,8 +1,28 @@
 # AkriBox
 
+> Dari gambar 2D ke potongan laser yang pas.
+
 Merakit gambar 2D panel akrilik (file AI / PDF) menjadi rakitan 3D virtual, lalu memeriksa
 apakah semuanya pas di ukuran nyata **sebelum** dipotong: tab masuk slot atau tidak, panel
-bertabrakan atau tidak, dan berapa ukuran jadi box-nya.
+bertabrakan atau tidak, dan berapa ukuran jadi box-nya. Hasil akhirnya DXF/SVG siap potong.
+
+## Pasang dan jalankan
+
+Butuh Python 3.12 (Windows; Linux/macOS seharusnya jalan, belum diuji).
+
+```
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+box.bat new kotak.box.json --inner 120,90,60 --tebal 5
+box.bat gui kotak.box.json
+```
+
+Contoh proyek siap pakai ada di `examples/kotak-contoh.box.json`. Untuk pengujian GUI otomatis
+pasang juga `requirements-dev.txt` (Playwright, memakai Chrome sistem).
+Pada contoh di bawah, `box` berarti `box.bat` (Windows) atau `python -m boxapp`.
+
+Lisensi: [MIT](LICENSE). Komponen (USB, OLED, ESP32, dll.) memakai ukuran umum/perkiraan:
+cocokkan dengan komponen asli sebelum memotong akrilik.
 
 Satu engine, dua pintu masuk: **GUI** di browser dan **CLI** (untuk dipakai LLM). Keduanya
 membaca file proyek yang sama, `*.box.json`.

@@ -1,0 +1,16 @@
+{
+  "thickness": 5.0,
+  "kerf": 0.0,
+  "generator": {
+    "type": "box",
+    "inner": [
+      120,
+      90,
+      60
+    ],
+    "tab": 20,
+    "top": true,
+    "joints": {}
+  },
+  "panels": {}
+}
