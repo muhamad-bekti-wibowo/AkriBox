@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rakit Box</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --line:#d9dce2; --text:#1c2026; --muted:#667080;
+  --accent:#2563eb; --gagal:#d92d20; --sesak:#c2570c; --awas:#a16207; --ok:#15803d; --info:#667080;
+  --view:#e9ecf1; --new:#9333ea;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14171c; --panel:#1c2027; --line:#2e343e; --text:#e6e9ee; --muted:#939cab;
+    --accent:#6ea0ff; --gagal:#ff6b5e; --sesak:#ff9f52; --awas:#e3b341; --ok:#4ade80; --info:#939cab;
+    --view:#0f1216; --new:#c084fc; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px/1.45 system-ui,"Segoe UI",sans-serif;
+  display:grid;grid-template-rows:auto 1fr;}
+header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:8px 14px;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:15px;margin:0;font-weight:650}
+header .src{color:var(--muted);max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+label.f{display:flex;align-items:center;gap:6px;color:var(--muted)}
+input[type=number],input[type=text],select{background:var(--bg);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:4px 6px;font:inherit}
+input[type=number]{width:70px}
+button{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;
+  padding:5px 11px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg))}
+button.danger:hover{border-color:var(--gagal);color:var(--gagal)}
+.badge{margin-left:auto;padding:4px 10px;border-radius:999px;font-weight:650;border:1px solid currentColor}
+.badge.ok{color:var(--ok)} .badge.bad{color:var(--gagal)} .badge.stale{color:var(--muted);border-style:dashed}
+main{display:grid;grid-template-columns:250px minmax(0,1fr) 400px;min-height:0}
+aside{background:var(--panel);overflow:auto;min-height:0}
+aside.left{border-right:1px solid var(--line)} aside.right{border-left:1px solid var(--line)}
+h2{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 12px 6px;
+  display:flex;align-items:center;justify-content:space-between}
+h2 button{padding:1px 8px;text-transform:none;letter-spacing:0}
+.plist div.row{display:flex;gap:8px;align-items:center;padding:6px 12px;cursor:pointer;border-left:3px solid transparent}
+.plist div.row:hover{background:var(--bg)}
+.plist div.row.sel{background:var(--bg);border-left-color:var(--accent)}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.plist .nm{flex:1;min-width:0}
+.plist .nm b{font-weight:600}
+.plist .nm small{display:block;color:var(--muted)}
+.plist .un{color:var(--awas)}
+.plist .nw{color:var(--new)}
+.plist .row .rowdel{visibility:hidden;border:none;background:none;color:var(--muted);padding:0 6px;font-size:14px}
+.plist .row:hover .rowdel,.plist .row.sel .rowdel{visibility:visible}
+.plist .row .rowdel:hover{color:var(--gagal)}
+button:disabled{opacity:.45;cursor:default}
+button:disabled:hover{border-color:var(--line)}
+.center{display:grid;grid-template-rows:auto 1fr;min-width:0;min-height:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.bar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.tabs button{border-radius:6px 6px 0 0}
+#view3d,#view2d{min-height:0;min-width:0;background:var(--view);position:relative;overflow:hidden}
+#view2d{display:none;grid-template-rows:auto 1fr auto}
+#view2d .bar{border-bottom:1px solid var(--line)}
+#stage2d{position:relative;min-height:0;overflow:hidden;background:var(--view)}
+#stage2d svg{width:100%;height:100%;display:block;touch-action:none;user-select:none}
+#stage2d.t-circle svg,#stage2d.t-rect svg,#stage2d.t-place svg{cursor:crosshair}
+#stage2d.pan svg{cursor:grabbing}
+#stage2d polygon{vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#stage2d .outline{fill:color-mix(in srgb,var(--accent) 12%,transparent);stroke:var(--text);stroke-width:1.3px}
+#stage2d .tab{fill:color-mix(in srgb,var(--ok) 45%,transparent);stroke:var(--ok);stroke-width:1.1px;cursor:pointer}
+#stage2d .slot{fill:color-mix(in srgb,var(--gagal) 40%,transparent);stroke:var(--gagal);stroke-width:1.1px;cursor:pointer}
+#stage2d .cut{fill:var(--view);stroke:var(--text);stroke-width:1.1px;cursor:pointer}
+#stage2d .guide{fill:transparent;stroke:var(--accent);stroke-width:1.1px;stroke-dasharray:5 4;cursor:pointer;pointer-events:all}
+#stage2d .guide:hover{stroke-width:2.4px}
+#stage2d .added{stroke:var(--new);stroke-width:1.6px}
+#stage2d .cut:hover,#stage2d .slot:hover,#stage2d .tab:hover{stroke-width:2px}
+#stage2d .sel{stroke:var(--accent)!important;stroke-width:2.6px!important;fill:color-mix(in srgb,var(--accent) 30%,var(--view))!important}
+#stage2d .preview{fill:color-mix(in srgb,var(--new) 25%,transparent);stroke:var(--new);stroke-width:1.5px;
+  stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}
+#stage2d .edge{stroke:transparent;stroke-width:14px;vector-effect:non-scaling-stroke;cursor:ew-resize;pointer-events:stroke}
+#stage2d .edge.h{cursor:ns-resize}
+#stage2d .vh{fill:var(--bg,#fff);stroke:var(--accent);stroke-width:2px;vector-effect:non-scaling-stroke;cursor:move}
+#stage2d .vh:hover,#stage2d .vh.on{fill:var(--accent)}
+#stage2d .eh{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-width:1px;vector-effect:non-scaling-stroke;cursor:move}
+#stage2d .eh:hover{fill-opacity:.9}
+#stage2d .snapline{stroke:#ff2fb3;stroke-width:1px;stroke-dasharray:5 3;vector-effect:non-scaling-stroke;pointer-events:none}
+#stage2d .outprev{fill:none;stroke:var(--accent);stroke-width:1.6px;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none}
+#stage2d .edge:hover,#stage2d .edge.on{stroke:color-mix(in srgb,var(--accent) 45%,transparent)}
+#props2d .grp{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border:1px solid var(--line);border-radius:7px;color:var(--muted)}
+#props2d input.nonint{border-color:var(--awas);color:var(--awas)}
+#props2d{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;align-content:flex-start;padding:7px 12px;
+  border-top:1px solid var(--line);background:var(--panel);height:112px;overflow:auto}   /* tinggi tetap: memilih bentuk tidak menggeser gambar */
+#props2d label{display:flex;align-items:center;gap:5px;color:var(--muted)}
+#props2d input[type=number]{width:72px}
+.muted{color:var(--muted)}
+canvas{display:block}
+.sec h3{font-size:12px;margin:14px 12px 4px}
+.it{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:5px 12px;cursor:pointer;border-top:1px solid var(--line)}
+.it:hover{background:var(--bg)}
+.lv{font-size:10px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:4px;height:fit-content;
+  border:1px solid currentColor;margin-top:1px}
+.lv.gagal{color:var(--gagal)} .lv.sesak{color:var(--sesak)} .lv.awas{color:var(--awas)}
+.lv.ok{color:var(--ok)} .lv.info{color:var(--info)}
+.sum{padding:10px 12px;border-bottom:1px solid var(--line)}
+.sum b{font-size:14px}
+.edit{padding:0 12px 12px;display:grid;gap:6px}
+.edit .r{display:grid;grid-template-columns:52px 1fr;gap:6px;align-items:center}
+.edit input{width:100%}
+.err{color:var(--gagal);padding:6px 12px;white-space:pre-wrap}
+.hint{color:var(--muted);padding:0 12px 8px}
+#busy{position:absolute;inset:0;display:none;place-items:center;background:color-mix(in srgb,var(--view) 70%,transparent);z-index:3}
+#toast button{margin-left:12px;background:transparent;color:inherit;border-color:currentColor}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:8px 14px;border-radius:8px;z-index:20;max-width:80vw;display:none;box-shadow:0 4px 18px #0006}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:0;
+  width:min(1080px,96vw);max-height:94vh;overflow:auto}
+dialog.small{width:min(520px,96vw)}
+dialog::backdrop{background:#0008}
+.dl{padding:16px 18px;display:grid;gap:12px}
+.dl h3{margin:0;font-size:15px}
+.dl .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.dl .grid2 label,.dl .ctl label{display:grid;gap:3px;color:var(--muted)}
+.dl .grid2 label.row,.dl .ctl label.row{display:flex;align-items:center;gap:6px}
+.dl input[type=number],.dl input[type=text],.dl select{width:100%}
+.dl .pair{display:flex;gap:6px}
+.dl .foot{display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--panel);padding:8px 0 2px;border-top:1px solid var(--line)}
+.tr{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px}
+.tr .ctl{display:grid;gap:8px;align-content:start}
+.tr .ctl fieldset{border:1px solid var(--line);border-radius:8px;margin:0;padding:8px 10px;display:grid;gap:7px}
+.tr .ctl legend{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:0 4px}
+.tr input[type=range]{width:100%}
+.tr .pv{background:var(--view);border:1px solid var(--line);border-radius:8px;min-height:360px;display:grid;
+  place-items:center;overflow:hidden;position:relative}
+.tr .pv svg{width:100%;height:auto;max-height:62vh;display:block}
+.tr .stat{color:var(--muted);margin-top:6px}
+.tr .warn{color:var(--awas)}
+@media (max-width:1000px){ main{grid-template-columns:1fr;grid-auto-rows:minmax(320px,auto)} #view3d{min-height:420px}
+  .tr{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rakit Box</h1>
+  <span class="src" id="src"></span>
+  <label class="f">Tebal <input type="number" id="thk" step="0.1" min="0.1"> mm</label>
+  <label class="f">Kerf <input type="number" id="kerf" step="0.05" min="0"> mm</label>
+  <button class="primary" id="apply">Periksa ulang</button>
+  <button id="b-autoslot" title="Sambungan tab + slot otomatis antara dua panel yang menempel, atau slot saja untuk tab yang sudah ada">Sambungan otomatis…</button>
+  <button id="export">Ekspor DXF + SVG</button>
+  <button id="undo" title="Ctrl+Z">Urungkan</button>
+  <button id="redo" title="Ctrl+Shift+Z">Ulangi</button>
+  <span class="badge" id="badge">…</span>
+</header>
+<main>
+  <aside class="left">
+    <h2>Panel <span><button id="gen" title="buat / atur box akrilik otomatis">Generator box…</button>
+      <button id="newpanel" title="buat panel kotak baru">+ Panel</button></span></h2>
+    <div class="plist" id="plist"></div>
+    <div class="hint" id="removed" hidden></div>
+    <h2>Posisi di rakitan</h2>
+    <div class="hint" id="nosel">Klik panel di daftar atau di gambar 3D.</div>
+    <div class="edit" id="edit" hidden>
+      <div class="r"><span>Nama</span><input type="text" id="e-name"></div>
+      <div class="r"><span>Warna</span><span style="display:flex;gap:6px;align-items:center"><input type="color" id="e-color" value="#5b9ed6" style="width:44px;height:28px;padding:0" title="Warna panel di 3D"><button id="e-color-reset" title="kembali ke warna bawaan">Bawaan</button></span></div>
+      <div class="r"><span>Origin</span><input type="text" id="e-origin" placeholder="x, y, z"></div>
+      <div class="r"><span>u</span><input type="text" id="e-u" placeholder="+X atau x, y, z"></div>
+      <div class="r"><span>v</span><input type="text" id="e-v" placeholder="+Z atau x, y, z"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="primary" id="e-save">Terapkan</button>
+        <button id="e-snap" title="Tempelkan panel ini ke permukaan panel lain terdekat (maks 30 mm) di rakitan">Tempelkan</button>
+        <button id="e-clear">Lepas dari rakitan</button>
+        <button id="e-del" class="danger" title="Hapus panel ini (bisa diurungkan)">Hapus panel</button></div>
+      <div class="hint" style="padding:0">Titik (x, y) panel dipetakan ke origin + x·u + y·v. Tebal memanjang ke arah u × v.</div>
+    </div>
+    <div class="err" id="err"></div>
+  </aside>
+  <section class="center">
+    <div class="bar" id="bar3d">
+      <span class="tabs"><button id="t3" class="on">Rakitan 3D</button><button id="t2">Panel 2D</button></span>
+      <label class="f">Urai <input type="range" id="explode" min="0" max="1.2" step="0.02" value="0"></label>
+      <label class="f"><input type="checkbox" id="showcol" checked> Tandai tabrakan</label>
+      <label class="f"><input type="checkbox" id="xray"> Tembus pandang</label>
+      <label class="f" title="Warna latar tampilan 3D">Latar <select id="bg3d"><option value="">bawaan</option><option value="#14171c">gelap</option><option value="#e9ecf1">terang</option><option value="#ffffff">putih</option><option value="#8a93a0">abu-abu</option><option value="custom">warna lain…</option></select><input type="color" id="bg3d-c" value="#14171c" hidden style="width:30px;height:24px;padding:0"></label>
+      <button id="fit">Paskan</button>
+      <button id="del3d" class="danger" title="Delete: hapus panel terpilih (bisa diurungkan)" disabled>Hapus panel</button>
+      <span class="tabs"><button id="m-g" class="on" title="tombol G">Geser (G)</button><button id="m-r" title="tombol R">Putar (R)</button></span>
+      <button id="m-sp" title="Sumbu gizmo: mengikuti panel (lurus dengan objek) atau sumbu dunia">Sumbu: panel</button>
+      <label class="f" title="0 = bebas">Langkah <input type="number" id="snap-t" value="1" min="0" step="0.1"> mm</label>
+      <label class="f" title="Putar: 0 = bebas dan halus. Sudut dibulatkan backend saat dilepas; hampir sejajar sumbu (±2°) dikunci lurus."><input type="number" id="snap-r" value="0" min="0" step="1"> °</label>
+      <label class="f" title="Saat melepas geseran, panel menempel otomatis ke permukaan panel lain yang berdekatan (maks 8 mm)"><input type="checkbox" id="magnet3" checked> Magnet</label>
+    </div>
+    <div id="view3d"><div id="busy">Menghitung…</div></div>
+    <div id="view2d">
+      <div class="bar" id="tools2d">
+        <span class="tabs"><button id="t3b">Rakitan 3D</button><button id="t2b" class="on">Panel 2D</button></span>
+        <span class="sep"></span>
+        <button id="tl-select" class="on" title="V">Pilih (V)</button>
+        <button id="tl-circle" title="C">Lingkaran (C)</button>
+        <button id="tl-rect" title="B">Kotak (B)</button>
+        <span class="sep"></span>
+        <button id="b-array">Larik…</button>
+        <button id="b-comp">Komponen…</button>
+        <button id="b-divide" title="bagi sisi panel menjadi N bagian, tab selang-seling">Bagi sisi…</button>
+        <button id="b-trace">Gambar → bentuk…</button>
+        <button id="b-copy" title="Salin bentuk / grup terpilih (Ctrl+C)">Salin</button><button id="b-paste" title="Tempel (Ctrl+V); di panel lain = posisi sama">Tempel</button><button id="b-dup" title="Gandakan di tempat, bergeser 10 mm (Ctrl+D)">Gandakan</button>
+        <button id="b-del" class="danger" title="Delete">Hapus</button>
+        <span class="sep"></span>
+        <label class="f" title="0 = bebas">Langkah <input type="number" id="snap2d" value="1" min="0" step="0.5"> mm</label>
+        <button id="zoom-out" title="Perkecil tampilan (tombol -)">−</button><button id="zoom-in" title="Perbesar tampilan (tombol +)">+</button>
+        <label class="f" title="Garis panduan dan tempel otomatis ke tepi / tengah bentuk lain dan panel (tahan Alt = matikan sementara)"><input type="checkbox" id="magnet" checked> Magnet</label>
+        <button id="fit2d">Paskan</button>
+        <span class="muted" id="coord2d" style="min-width:150px"></span>
+      </div>
+      <div id="stage2d"></div>
+      <div id="props2d"></div>
+    </div>
+  </section>
+  <aside class="right">
+    <div class="sum" id="sum"></div>
+    <div id="report"></div>
+  </aside>
+</main>
+<dialog id="dlg"></dialog>
+<div id="toast"></div>
+<script type="importmap">{"imports":{"three":"/static/vendor/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '/static/vendor/OrbitControls.js';
+import { TransformControls } from '/static/vendor/TransformControls.js';
+
+window.addEventListener('error', e => { document.getElementById('err').textContent = 'Kesalahan tampilan: ' + e.message; });
+const COLORS = [0x5b9ed6,0xf2b354,0x78c285,0xcc8fc7,0x8cc7cc,0xed9990,0xb8b873,0x9e9edb,0xd9bf9e,0x99b39e];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css = n => '#' + COLORS[n % COLORS.length].toString(16).padStart(6, '0');
+let state = null, selected = null, mtime = 0, is2d = false;
+const meshes = new Map();          // id -> {mesh, center}
+let colGroup = null, mid = new THREE.Vector3();
+
+let toastTimer = null;
+function toast(msg, ms = 3500, action = null){          // action: {label, run}
+  const t = $('toast'); t.textContent = msg; t.style.display = 'block';
+  if (action){
+    const b = document.createElement('button'); b.textContent = action.label;
+    b.onclick = () => { t.style.display = 'none'; action.run(); };
+    t.appendChild(b);
+  }
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.style.display = 'none', ms);
+}
+
+// ---------- 3D ----------
+const host = $('view3d');
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+host.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 20000);
+camera.up.set(0, 0, 1);
+camera.position.set(-380, -420, 330);
+const controls = new OrbitControls(camera, renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 1.5));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-300, -500, 700); scene.add(sun);
+const root = new THREE.Group(); scene.add(root);
+
+// gizmo geser / putar seperti di Blender
+const tc = new TransformControls(camera, renderer.domElement);
+tc.setSpace('local'); tc.setSize(0.9); scene.add(tc);
+const pivot = new THREE.Object3D(); scene.add(pivot);       // gizmo menempel di sini: sumbunya = sumbu panel (u, v, normal)
+const pivot0 = new THREE.Quaternion();
+let localSpace = true;
+function panelBasisQ(id){
+  const p = state && state.panels.find(x => x.id === id), pl = p && (p.placement || p.eff_placement);
+  if (!pl) return new THREE.Quaternion();
+  const u = new THREE.Vector3(...arr(pl.u ?? '+X')).normalize(), v = new THREE.Vector3(...arr(pl.v ?? '+Y')).normalize();
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(u, v, new THREE.Vector3().crossVectors(u, v)));
+}
+function syncPivot(){
+  const m = meshes.get(selected); if (!m) return;
+  pivot.position.copy(m.mesh.position);
+  pivot.quaternion.copy(localSpace ? panelBasisQ(selected) : new THREE.Quaternion());
+  pivot0.copy(pivot.quaternion);
+}
+function pivotToMesh(){                                       // gerakan gizmo diteruskan ke panel (halus, tanpa pembulatan)
+  const m = meshes.get(selected); if (!m) return;
+  m.mesh.position.copy(pivot.position);
+  m.mesh.quaternion.copy(pivot.quaternion).multiply(pivot0.clone().invert());
+}
+const AX = {'+X':[1,0,0],'-X':[-1,0,0],'+Y':[0,1,0],'-Y':[0,-1,0],'+Z':[0,0,1],'-Z':[0,0,-1]};
+const arr = v => typeof v === 'string' ? AX[v.toUpperCase()] : v;
+function nice(v){                      // vektor arah -> "+X" bila tepat di sumbu
+  v.normalize();
+  for (const [k, a] of Object.entries(AX)) if (Math.hypot(v.x - a[0], v.y - a[1], v.z - a[2]) < 1e-4) return k;
+  return v.toArray().map(x => +x.toFixed(5));
+}
+function movedPlacement(){             // posisi baru panel terpilih menurut gizmo
+  const p = state && state.panels.find(p => p.id === selected), m = meshes.get(selected);
+  if (!p || !p.placement || !m) return null;
+  const q = m.mesh.quaternion;
+  if (m.mesh.position.distanceTo(m.center) < 1e-6 && Math.abs(q.w) > 1 - 1e-9) return null;
+  const o = new THREE.Vector3(...arr(p.placement.origin ?? [0,0,0])).sub(m.center).applyQuaternion(q).add(m.mesh.position);
+  return {origin: o.toArray().map(x => +x.toFixed(2)),
+          u: nice(new THREE.Vector3(...arr(p.placement.u ?? '+X')).applyQuaternion(q)),
+          v: nice(new THREE.Vector3(...arr(p.placement.v ?? '+Y')).applyQuaternion(q))};
+}
+tc.addEventListener('objectChange', () => {
+  pivotToMesh();
+  const pl = movedPlacement(), f = v => Array.isArray(v) ? v.join(', ') : v;
+  if (pl) { $('e-origin').value = f(pl.origin); $('e-u').value = f(pl.u); $('e-v').value = f(pl.v); }
+});
+tc.addEventListener('dragging-changed', e => {
+  controls.enabled = !e.value;
+  if (e.value) { if (colGroup) colGroup.visible = false; return; }
+  const m = meshes.get(selected);
+  if (m && Math.abs(m.mesh.quaternion.w) < 1 - 1e-9){          // putar: backend membulatkan sudut dan mengunci lurus ke sumbu
+    const q = m.mesh.quaternion.clone(); if (q.w < 0) q.set(-q.x, -q.y, -q.z, -q.w);
+    const sn = Math.sqrt(Math.max(1 - q.w * q.w, 1e-18));
+    api('/api/edit', {ops: [{op: 'rotate', panel: selected, axis: [q.x / sn, q.y / sn, q.z / sn],
+        angle: 2 * Math.acos(Math.min(1, q.w)) * 180 / Math.PI, center: m.center.toArray(), step: +$('snap-r').value || 0}]}, true)
+      .then(async r => { await load(false); toast(r.results[0].text, 6000, {label: 'Urungkan', run: undo}); })
+      .catch(() => applyView());
+    return;
+  }
+  if (m && m.mesh.position.distanceTo(m.center) > 1e-6){      // geser: backend membulatkan dan menempelkan (magnet) ke permukaan panel lain
+    const dv = m.mesh.position.clone().sub(m.center);
+    api('/api/edit', {ops: [{op: 'place_move', panel: selected, delta: dv.toArray(), step: +$('snap-t').value || 0,
+        magnet: $('magnet3').checked, tol: 8}]}, true)
+      .then(async r => { await load(false); toast(r.results[0].text, 6000, {label: 'Urungkan', run: undo}); })
+      .catch(() => applyView());
+    return;
+  }
+  const pl = movedPlacement();
+  if (!pl) return;
+  postSpec({panels: {[selected]: {placement: pl}}}).catch(() => applyView());
+});
+function setMode(m){
+  tc.setMode(m); $('m-g').classList.toggle('on', m === 'translate'); $('m-r').classList.toggle('on', m === 'rotate');
+}
+function setSnap(){
+  const t = +$('snap-t').value, r = +$('snap-r').value;
+  tc.setTranslationSnap(t > 0 ? t : null); tc.setRotationSnap(null);      // putar selalu halus; sudutnya dibulatkan backend
+}
+function lockAxis(a){                  // X / Y / Z: kunci ke satu sumbu, tekan lagi untuk lepas
+  const only = tc.showX && tc.showY && tc.showZ ? a : (tc['show' + a] && [tc.showX, tc.showY, tc.showZ].filter(Boolean).length === 1 ? null : a);
+  tc.showX = !only || only === 'X'; tc.showY = !only || only === 'Y'; tc.showZ = !only || only === 'Z';
+}
+const axes = new THREE.AxesHelper(60); axes.position.set(-40, -40, -5); scene.add(axes);
+
+function resize(){
+  const w = host.clientWidth, h = host.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false); renderer.domElement.style.width = w+'px'; renderer.domElement.style.height = h+'px';
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(host);
+(function loop(){ controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+
+function geomOf(o){
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(o.v, 3));
+  g.setIndex(o.f);
+  return g;
+}
+function buildScene(){
+  root.clear(); meshes.clear();
+  const box = new THREE.Box3();
+  state.scene.forEach(o => {
+    const idx = state.panels.findIndex(p => p.id === o.id);
+    const g = geomOf(o);
+    g.computeBoundingBox(); box.union(g.boundingBox);
+    g.translate(-o.center[0], -o.center[1], -o.center[2]);     // pusat panel = titik gizmo
+    const pcol = idx >= 0 && state.panels[idx].color ? parseInt(state.panels[idx].color.slice(1), 16) : COLORS[idx % COLORS.length];
+    const mat = new THREE.MeshLambertMaterial({color: pcol, flatShading:true,
+      polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+    const mesh = new THREE.Mesh(g, mat); mesh.userData.id = o.id;
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(g, 25),
+      new THREE.LineBasicMaterial({color:0x10141a, transparent:true, opacity:.55}));
+    mesh.add(edges); root.add(mesh);
+    meshes.set(o.id, {mesh, center: new THREE.Vector3(...o.center)});
+  });
+  box.getCenter(mid);
+  colGroup = new THREE.Group();
+  state.collisions.forEach(o => colGroup.add(new THREE.Mesh(geomOf(o),
+    new THREE.MeshBasicMaterial({color:0xff2d1f, transparent:true, opacity:.75, depthTest:false}))));
+  colGroup.renderOrder = 5; root.add(colGroup);
+  applyView();
+  return box;
+}
+function applyView(){
+  const k = +$('explode').value, x = $('xray').checked;
+  meshes.forEach((m, id) => {
+    m.mesh.position.copy(m.center).sub(mid).multiplyScalar(k).add(m.center);
+    m.mesh.quaternion.identity();
+    const sel = selected === id;
+    m.mesh.material.transparent = x && !sel; m.mesh.material.opacity = x && !sel ? .28 : 1;
+    m.mesh.material.emissive.setHex(sel ? 0x2a4a8a : 0);
+    m.mesh.material.needsUpdate = true;
+  });
+  if (colGroup) colGroup.visible = $('showcol').checked && k === 0;
+  const sm = k === 0 && !is2d ? meshes.get(selected) : null;      // gizmo hanya saat rakitan rapat
+  if (sm){ syncPivot(); tc.attach(pivot); } else tc.detach();
+}
+function fit(box){
+  box = box || new THREE.Box3().setFromObject(root);
+  if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()), r = box.getSize(new THREE.Vector3()).length() / 2;
+  const d = r / Math.sin(camera.fov * Math.PI / 360) * 1.05;
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  controls.target.copy(c); camera.position.copy(c).addScaledVector(dir, d);
+}
+const ray = new THREE.Raycaster(); let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 4) return;
+  if (tc.dragging || tc.axis) return;                     // klik pada gizmo, bukan memilih panel
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  const hit = ray.intersectObjects([...meshes.values()].map(m => m.mesh), false)[0];
+  select(hit ? hit.object.userData.id : null);
+});
+
+// ---------- daftar, laporan, API ----------
+function renderList(){
+  const rm = state.removed || [];
+  $('removed').hidden = !rm.length;
+  $('removed').innerHTML = rm.length ? 'Dihapus: ' + rm.map(r => `<button data-restore="${r.id}" title="pulihkan ${esc(r.name)}">${r.id}${r.name ? ' ' + esc(r.name) : ''} ↺</button>`).join(' ') : '';
+  $('plist').innerHTML = !state.panels.length ? '<div class="hint">Belum ada panel. Klik "Generator box…" untuk membuat box akrilik otomatis, atau "+ Panel".</div>' : state.panels.map((p, i) => `
+    <div class="row${selected === p.id ? ' sel' : ''}" data-id="${p.id}">
+      <span class="sw" style="background:${p.color || css(i)}"></span>
+      <span class="nm"><b>${p.id}</b> ${esc(p.name)}<small>${p.measure.size_text} mm · ${p.tabs} tab
+        ${p.new ? '· <span class="nw">baru</span>' : ''}
+        ${p.placed ? '' : '· <span class="un">belum ditempatkan</span>'}</small></span><button class="rowdel" data-del="${p.id}" title="Hapus panel">✕</button></div>`).join('');
+}
+function render(first){
+  $('src').textContent = state.project + ' ← ' + state.source; $('src').title = state.source;
+  $('thk').value = state.thickness; $('kerf').value = state.kerf;
+  const r = state.report, b = $('badge');
+  b.className = 'badge ' + (r.ok ? 'ok' : 'bad');
+  b.textContent = r.ok ? 'LOLOS' : `TIDAK LOLOS · ${r.errors} gagal · ${r.tight} sesak`;
+  renderList();
+  const s = state.summary;
+  $('sum').innerHTML = (r.size_body ? `<b>${r.size_body.map(v => v.toFixed(1)).join(' × ')} mm</b><br>
+    ukuran nyata rakitan (X × Y × Z); dengan ujung tab ${r.size_with_tabs.map(v => v.toFixed(1)).join(' × ')}<br>` : '')
+    + `<span style="color:var(--muted)">${esc(s.head)}</span>`;
+  $('report').innerHTML = s.sections.map(sec => `<div class="sec"><h3>${esc(sec.title)}</h3>` +
+    sec.items.map(it => `<div class="it" data-p="${it.panels.join(',')}"><span class="lv ${it.level}">${it.level}</span>
+      <span>${esc(it.text)}</span></div>`).join('') + '</div>').join('');
+  showSelected();
+  const box = buildScene();
+  if (first) fit(box);
+}
+function select(id){
+  if (id !== selected) sel2.clear();
+  selected = id;
+  document.querySelectorAll('.plist .row').forEach(r => r.classList.toggle('sel', r.dataset.id === id));
+  applyView(); showSelected();
+}
+function showSelected(){
+  const p = state.panels.find(p => p.id === selected);
+  $('edit').hidden = !p; $('nosel').hidden = !!p; $('del3d').disabled = !p;
+  show2d();
+  if (!p) return;
+  const pl = p.placement || {}, f = v => Array.isArray(v) ? v.join(', ') : (v ?? '');
+  $('e-name').value = p.name;
+  $('e-color').value = p.color || css(state.panels.findIndex(x => x.id === p.id));
+  $('e-origin').value = f(pl.origin) || '0, 0, 0'; $('e-u').value = f(pl.u) || '+X'; $('e-v').value = f(pl.v) || '+Y';
+}
+const vec = (s, what) => {
+  s = s.trim();
+  if (/^[+-][xyz]$/i.test(s)) return s.toUpperCase();
+  const a = s.split(/[,\s]+/).map(Number);
+  if (a.length !== 3 || a.some(isNaN)) throw new Error(`${what}: tulis 3 angka (x, y, z) atau sumbu seperti +X`);
+  return a;
+};
+async function api(url, body, quiet){
+  if (!quiet) $('busy').style.display = 'grid';
+  $('err').textContent = '';
+  try {
+    const res = await fetch(url, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)} : undefined);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
+  } catch (e) { $('err').textContent = e.message; throw e; }
+  finally { $('busy').style.display = 'none'; }
+}
+async function load(first){ state = await api('/api/state', null, true); mtime = state.mtime; stale = false; render(first); }
+async function postSpec(body){ state = await api('/api/spec', body); mtime = state.mtime; render(false); }
+async function undo(){ try { state = await api('/api/undo', {}); mtime = state.mtime; render(false); toast('Diurungkan'); } catch {} }
+async function redo(){ try { state = await api('/api/redo', {}); mtime = state.mtime; render(false); toast('Diulangi'); } catch {} }
+
+// ---------- editor 2D ----------
+// Semua angka (kisi, pembulatan, teks ukuran) dihitung backend lewat /api/measure dan /api/edit.
+// Di sini hanya menampilkan jawaban dan mengirim koordinat mentah.
+let selV = null, vDrag = null, lastPid = null;
+let tool = 'select', svgEl = null, edgeDrag = null, drag = null, drawing = null, panning = null, spaceDown = false;
+let stale = false, reloadTimer = null;
+const sel2 = new Set();
+const viewBoxes = new Map();
+const stage = $('stage2d'), props = $('props2d');
+const curP = () => state && state.panels.find(p => p.id === selected);
+const step = () => +$('snap2d').value || 0;
+let mSeq = 0;
+function measure(body, apply){                    // hanya jawaban terbaru yang dipakai
+  const my = ++mSeq;
+  fetch('/api/measure', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({step: step(), ...body})})
+    .then(r => r.json()).then(r => { if (my === mSeq && !r.error) apply(r); }).catch(() => {});
+}
+
+function toLocal(e){
+  const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const s = pt.matrixTransform(svgEl.getScreenCTM().inverse()), d = svgEl.dataset;
+  return [s.x - +d.m + +d.b0, +d.h - s.y - +d.m + +d.b1];
+}
+function toSvg(x, y){ const d = svgEl.dataset; return [x - +d.b0 + +d.m, +d.h - (y - +d.b1 + +d.m)]; }
+const scale2d = () => svgEl.getScreenCTM().a;
+
+function show2d(){
+  const p = curP();
+  stage.innerHTML = ''; svgEl = null;
+  if (!p){ stage.innerHTML = '<div class="hint" style="padding:16px">Pilih panel untuk melihat dan mengedit gambar 2D-nya.</div>'; renderProps(); return; }
+  if (lastPid !== p.id){ selV = null; lastPid = p.id; }
+  if (selV !== null && selV >= p.measure.outline.length) selV = null;
+  stage.innerHTML = p.svg;
+  svgEl = stage.firstElementChild;
+  const vb = viewBoxes.get(p.id);
+  if (vb) svgEl.setAttribute('viewBox', vb.join(' '));
+  addHandles(p);
+  const ids = new Set(p.items.map(i => i.id));
+  [...sel2].forEach(i => ids.has(i) || sel2.delete(i));
+  markSel(); renderProps();
+}
+function addHandles(p){                    // pegangan seret di empat batas panel (di bawah bentuk lain)
+  const [x0, y0, x1, y1] = p.measure.bounds;
+  const ln = (name, a, b, cls) => { const [ax, ay] = toSvg(...a), [bx, by] = toSvg(...b);
+    return `<line class="edge ${cls}" data-edge="${name}" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>`; };
+  svgEl.insertAdjacentHTML('afterbegin', ln('left', [x0, y0], [x0, y1], 'v') + ln('right', [x1, y0], [x1, y1], 'v')
+    + ln('bottom', [x0, y0], [x1, y0], 'h') + ln('top', [x0, y1], [x1, y1], 'h'));
+  vtxHandles();
+}
+function vtxHandles(){                      // titik sudut + pegangan tengah sisi (ukuran tetap di layar)
+  if (!svgEl) return;
+  svgEl.querySelectorAll('.vh,.eh').forEach(e => e.remove());
+  const p = curP(); if (!p || tool !== 'select') return;
+  const pts = p.measure.outline, k = scale2d(), r = 5 / k, q = 4 / k;
+  let h = '';
+  pts.forEach((a, i) => {
+    const b = pts[(i + 1) % pts.length];
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) * k < 28) return;
+    const [mx, my] = toSvg((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+    h += `<rect class="eh" data-eh="${i}" x="${mx - q}" y="${my - q}" width="${2 * q}" height="${2 * q}" transform="rotate(45 ${mx} ${my})"><title>geser sisi ${i + 1} (klik dua kali = sisipkan titik)</title></rect>`;
+  });
+  pts.forEach((a, i) => { const [x, y] = toSvg(a[0], a[1]);
+    h += `<circle class="vh${selV === i ? ' on' : ''}" data-vh="${i}" cx="${x}" cy="${y}" r="${r}"><title>titik ${i + 1}: seret untuk menggeser</title></circle>`; });
+  svgEl.insertAdjacentHTML('beforeend', h);
+}
+const mg = ids => ($('magnet').checked && !window.__alt) ? {magnet: true, tol: 7 / scale2d(), panel: selected, ids} : {};
+function showGuides(gs){
+  if (!svgEl) return;
+  svgEl.querySelectorAll('.snapline').forEach(e => e.remove());
+  (gs || []).forEach(g => {
+    const p1 = g.axis === 'x' ? toSvg(g.pos, g.a) : toSvg(g.a, g.pos), p2 = g.axis === 'x' ? toSvg(g.pos, g.b) : toSvg(g.b, g.pos);
+    svgEl.insertAdjacentHTML('beforeend', `<line class="snapline" x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}"/>`);
+  });
+}
+function outPreview(pts){
+  if (!svgEl) return;
+  const old = svgEl.querySelector('.outprev'); if (old) old.remove();
+  const d = pts.map((a, i) => { const [x, y] = toSvg(a[0], a[1]); return (i ? 'L' : 'M') + x + ' ' + y; }).join(' ') + 'Z';
+  svgEl.insertAdjacentHTML('beforeend', `<path class="outprev" d="${d}"/>`);
+}
+function markSel(){
+  if (svgEl) svgEl.querySelectorAll('[data-id]').forEach(el => el.classList.toggle('sel', sel2.has(el.dataset.id)));
+}
+function setTool(t){
+  tool = t;
+  ['select', 'circle', 'rect'].forEach(k => $('tl-' + k).classList.toggle('on', k === t));
+  stage.className = 't-' + t;
+  drawing = null; if (svgEl){ const el = svgEl.querySelector('.preview'); if (el) el.remove(); vtxHandles(); }
+}
+function renderPreview(r){                 // bentuk pratinjau persis seperti yang akan dibuat backend
+  if (!svgEl || !drawing) return;
+  const old = svgEl.querySelector('.preview'); if (old) old.remove();
+  const [cx, cy] = toSvg(...r.center);
+  svgEl.insertAdjacentHTML('beforeend', r.kind === 'circle'
+    ? `<circle class="preview" cx="${cx}" cy="${cy}" r="${r.r}"/>`
+    : `<rect class="preview" x="${cx - r.size[0] / 2}" y="${cy - r.size[1] / 2}" width="${r.size[0]}" height="${r.size[1]}"/>`);
+  $('coord2d').textContent = r.text; showGuides(r.guides);
+}
+async function edit(ops){
+  try {
+    const r = await api('/api/edit', {ops}, true);
+    state.panels = r.panels; mtime = r.mtime; stale = true;
+    $('badge').className = 'badge stale'; $('badge').textContent = 'menghitung ulang…';
+    r.results.forEach(x => (x.notes || []).forEach(n => toast(n)));      // catatan dari backend (mis. dibulatkan)
+    renderList(); show2d(); scheduleReload();
+    return r;
+  } catch (e) { show2d(); throw e; }
+}
+function scheduleReload(){
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(() => {
+    if (drag || drawing || $('dlg').open || /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) return scheduleReload();
+    load(false).catch(() => {});
+  }, 1300);
+}
+async function deleteSel(){
+  if (!sel2.size) return;
+  const ids = [...sel2]; sel2.clear();
+  try {
+    await edit([{op: 'delete', panel: selected, ids}]);
+    toast(`${ids.length} bentuk dihapus`, 7000, {label: 'Urungkan', run: undo});
+  } catch {}
+}
+
+async function deletePanel(id){
+  const pn = state.panels.find(x => x.id === id); if (!pn) return;
+  const was = selected;
+  if (selected === id){ selected = null; sel2.clear(); }
+  try {
+    await edit([{op: 'remove_panel', panel: id}]); await load(false);
+    toast(`Panel ${id} ${pn.name} dihapus`, 9000, {label: 'Urungkan', run: undo});
+  } catch { selected = was; }
+}
+
+function renderProps(){
+  const p = curP();
+  if (!p){ props.innerHTML = ''; $('b-del').disabled = true; return; }
+  const items = p.items.filter(i => sel2.has(i.id));
+  $('b-del').disabled = !items.length;
+  const inp = (attr, v, ok, st, tip = '') => `<input type="number" ${attr} value="${v}" step="${st}" class="${ok ? '' : 'nonint'}" title="${tip}">`;
+  const roleSel = role => `<label>Jenis <select id="pr-role">
+    ${[['cut', 'potong'], ['guide', 'garis bantu'], ['ignore', 'abaikan']].map(([v, t]) => `<option value="${v}"${role === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`;
+  const m = p.measure;
+  let h = '';
+  if (items.length === 0){
+    h = `<span><b>${p.id}</b> ${esc(p.name)} · <b>${m.size_text}</b> mm</span>`
+      + m.edges.map(e => `<label>${e.label} ${inp(`data-edge-in="${e.name}"`, e.value, e.int, 1, e.int ? 'bilangan bulat' : 'berkoma: klik Bulatkan')}</label>`).join('')
+      + `<button id="ed-round"${m.all_int ? ' disabled' : ''} title="bulatkan semua batas ke bilangan bulat">Bulatkan</button>`;
+    if (p.edges) h += `<button id="ed-reset" title="kembalikan batas ke ukuran gambar sumber">Reset batas</button>`;
+    h += `<button id="pn-del" class="danger" title="Ctrl+Z untuk mengurungkan">Hapus panel</button>`;
+    if (selV !== null){
+      const v = m.outline[selV];
+      h = `<span><b>Titik ${selV + 1}</b></span><label>x <input type="number" data-vx="0" value="${v[0]}" step="1"></label><label>y <input type="number" data-vx="1" value="${v[1]}" step="1"></label>`
+        + `<button id="vt-del" class="danger" title="hapus titik ini (tombol Delete)"${m.outline.length <= 3 ? ' disabled' : ''}>Hapus titik</button>`
+        + `<span class="muted">seret titik atau ketik angkanya · Esc = batal pilih</span>`;
+    } else {
+      h += `<span class="grp" title="Buat panel jadi trapesium: pendekkan satu sisi dari kedua ujungnya">Trapesium · sisi
+        <select id="tz-side"><option value="top">atas</option><option value="bottom">bawah</option><option value="left">kiri</option><option value="right">kanan</option></select>
+        pendek ujung 1 (kiri/bawah) <input type="number" id="tz-a" value="10" step="1" style="width:58px"> ujung 2 <input type="number" id="tz-b" value="10" step="1" style="width:58px">
+        <button id="tz-ok">Terapkan</button></span>`
+        + (p.outline_custom ? `<button id="ol-reset" title="kembalikan bentuk outline ke bawaan">Reset bentuk</button>` : '');
+    }
+    if (p.generated) h += `<span class="muted">panel hasil Generator box: ukuran diatur lewat parameter generator</span>`;
+    h += `<span class="muted">Seret tepi panel atau ketik angkanya (bilangan bulat) · klik bentuk = pilih · Shift = banyak · roda = zoom · spasi + seret = geser tampilan</span>`;
+  } else if (items.length === 1){
+    const it = items[0];
+    h = `<span><b>${it.id}</b> ${esc(it.text)}${it.added ? ' · <span style="color:var(--new)">tambahan</span>' : ''}</span>`
+      + it.fields.map(f => `<label>${f.label} ${inp(`data-k="${f.key}"`, f.value, f.int, f.key === 'a' ? 1 : (step() || 0.1))}</label>`).join('');
+    if (it.type === 'feature') h += roleSel(it.role);
+    h += `<button id="pr-del" class="danger">Hapus</button>`;
+  } else {
+    const grp = items[0].group && items.every(i => i.group === items[0].group);
+    h = grp ? `<span><b>${items[0].comp ? 'Komponen ' + esc(items[0].comp) : 'Grup ' + esc(items[0].group)}</b> · ${items.length} bagian (bergerak dan terhapus bersama)</span>`
+            : `<span><b>${items.length}</b> dipilih</span>`;
+    if (items.every(i => i.type === 'feature')) h += roleSel(items[0].role);
+    h += (grp ? `<button id="gp-off" title="Lepas grup (Ctrl+Shift+G)">Lepas grup</button>` : (items.every(i => i.type === 'feature') ? `<button id="gp-on" title="Gabungkan jadi satu grup: geser / hapus bersama (Ctrl+G)">Jadikan grup</button>` : '')) + `<button id="pr-del" class="danger">Hapus</button>`;
+  }
+  const featIds = items.filter(i => i.type === 'feature').map(i => i.id);
+  if (featIds.length){
+    h = h.replace(/<button id="pr-del"/, `<span class="grp" title="Tengahkan / ratakan terhadap panel">Tengah
+      <button data-al="center" title="Tengahkan di panel (kiri-kanan dan atas-bawah)">⌖</button>
+      <button data-al="center-x" title="Tengahkan kiri-kanan">↔</button><button data-al="center-y" title="Tengahkan atas-bawah">↕</button></span>
+      <span class="grp">Skala <input type="number" id="sc-p" value="100" step="10" min="5" max="2000" style="width:66px">%
+      <button id="sc-dn" title="Perkecil 10%">−</button><button id="sc-up" title="Perbesar 10%">+</button><button id="sc-ok" title="Terapkan skala sesuai angka">Terapkan</button>
+      ${featIds.length > 1 ? '<select id="sc-about" title="Skala terhadap"><option value="each">tiap bentuk</option><option value="selection">seluruh pilihan</option></select>' : ''}</span><button id="pr-del"`);
+  }
+  props.innerHTML = h;
+  props.querySelectorAll('[data-al]').forEach(b => b.onclick = async () => {
+    try {
+      const r = await edit([{op: 'align', panel: selected, ids: featIds, mode: b.dataset.al}]);
+      toast(r.results[0].text);
+    } catch {}
+  });
+  const doScale = async pct => {
+    try {
+      const r = await edit([{op: 'scale', panel: selected, ids: featIds, percent: pct, about: $('sc-about') ? $('sc-about').value : 'each', step: step()}]);
+      sel2.clear(); r.results[0].ids.forEach(i => sel2.add(i)); show2d(); toast(r.results[0].text);
+    } catch {}
+  };
+  if ($('sc-ok')){
+    $('sc-ok').onclick = () => { const v = parseFloat($('sc-p').value); if (!isNaN(v) && v !== 100) doScale(v); };
+    $('sc-up').onclick = () => doScale(110);
+    $('sc-dn').onclick = () => doScale(90);
+  }
+  props.querySelectorAll('input[data-k]').forEach(i => i.addEventListener('change', async () => {
+    const v = parseFloat(i.value); if (isNaN(v)) return show2d();
+    try {
+      const r = await edit([{op: 'set_fields', panel: selected, id: items[0].id, values: {[i.dataset.k]: v}, step: step()}]);
+      sel2.clear(); sel2.add(r.results[0].id); show2d();
+    } catch {}
+  }));
+  props.querySelectorAll('input[data-edge-in]').forEach(i => i.addEventListener('change', () => {
+    const v = parseFloat(i.value); if (isNaN(v)) return show2d();
+    edit([{op: 'edges', panel: selected, [i.dataset.edgeIn]: v}]).catch(() => {});     // backend membulatkan
+  }));
+  const role = $('pr-role');
+  if (role) role.addEventListener('change', () => edit(items.map(i => ({op: 'role', panel: selected, id: i.id, role: role.value}))).catch(() => {}));
+  if ($('pr-del')) $('pr-del').onclick = deleteSel;
+  if ($('ed-round')) $('ed-round').onclick = () => edit([{op: 'edges', panel: selected, round: true}]).catch(() => {});
+  if ($('ed-reset')) $('ed-reset').onclick = () => edit([{op: 'edges', panel: selected, left: null, right: null, bottom: null, top: null}]).catch(() => {});
+  if ($('pn-del')) $('pn-del').onclick = () => deletePanel(p.id);
+  if ($('gp-on')) $('gp-on').onclick = () => groupSel(true);
+  if ($('gp-off')) $('gp-off').onclick = () => groupSel(false);
+  if ($('tz-ok')) $('tz-ok').onclick = () => edit([{op: 'outline', panel: selected, act: 'trapezoid', side: $('tz-side').value,
+    a: parseFloat($('tz-a').value) || 0, b: parseFloat($('tz-b').value) || 0, step: step() || 1}]).then(r => toast(r.results[0].text, 7000, {label: 'Urungkan', run: undo})).catch(() => {});
+  if ($('ol-reset')) $('ol-reset').onclick = () => edit([{op: 'outline', panel: selected, act: 'reset'}]).catch(() => {});
+  if ($('vt-del')) $('vt-del').onclick = delVertex;
+  props.querySelectorAll('input[data-vx]').forEach(i => i.addEventListener('change', () => {
+    const v = parseFloat(i.value); if (isNaN(v)) return show2d();
+    const to = m.outline[selV].slice(); to[+i.dataset.vx] = v;
+    edit([{op: 'outline', panel: selected, act: 'set', i: selV, to, step: step() || 1}]).catch(() => {});
+  }));
+}
+let clip = null;
+function copySel(quiet){
+  const ids = [...sel2]; if (!ids.length){ toast('Pilih bentuk dulu'); return false; }
+  clip = {panel: selected, ids, n: 0}; if (!quiet) toast(`${ids.length} bentuk disalin (Ctrl+V untuk menempel)`);
+  return true;
+}
+async function pasteClip(inPlace){
+  if (!clip){ toast('Belum ada yang disalin (pilih bentuk lalu Ctrl+C)'); return; }
+  const same = clip.panel === selected, k = inPlace ? 1 : ++clip.n;
+  try {
+    const r = await edit([{op: 'duplicate', panel: clip.panel, to: selected, ids: clip.ids, dx: same ? 10 * k : 0, dy: same ? -10 * k : 0, step: step()}]);
+    sel2.clear(); r.results[0].ids.forEach(i => sel2.add(i)); show2d();
+    if (inPlace) clip.ids = r.results[0].ids, clip.panel = selected;
+    toast(r.results[0].text, 6000, {label: 'Urungkan', run: undo});
+  } catch (e) { toast(e.message); }
+}
+async function groupSel(on){
+  const ids = [...sel2]; if (!ids.length) return;
+  try {
+    const r = await edit([{op: on ? 'group' : 'ungroup', panel: selected, ids}]);
+    toast(r.results[0].text, 6000, {label: 'Urungkan', run: undo});
+  } catch (e) { toast(e.message); }
+}
+async function delVertex(){
+  if (selV === null) return;
+  const i = selV; selV = null;
+  try { await edit([{op: 'outline', panel: selected, act: 'remove', i}]); toast('titik dihapus', 7000, {label: 'Urungkan', run: undo}); }
+  catch (e) { toast(e.message); }
+}
+
+stage.addEventListener('contextmenu', e => e.preventDefault());
+let lastEdgeClick = {i: -1, t: 0};
+stage.addEventListener('pointerdown', e => {
+  if (!svgEl || !svgEl.contains(e.target)) return;
+  if (e.button === 1 || e.button === 2 || spaceDown){
+    const vb = svgEl.viewBox.baseVal;
+    panning = {x: e.clientX, y: e.clientY, vb: [vb.x, vb.y, vb.width, vb.height], k: scale2d()};
+    stage.classList.add('pan'); svgEl.setPointerCapture(e.pointerId); e.preventDefault(); return;
+  }
+  if (e.button !== 0) return;
+  svgEl.setPointerCapture(e.pointerId);
+  const p = curP(), loc = toLocal(e);
+  const vh = tool === 'select' && e.target.closest('[data-vh]'), oe = tool === 'select' && e.target.closest('[data-eh]');
+  if (vh){ vDrag = {kind: 'vertex', i: +vh.dataset.vh, start: loc, raw: null, moved: false}; selV = vDrag.i; sel2.clear(); markSel(); return; }
+  if (oe){ vDrag = {kind: 'edge', i: +oe.dataset.eh, start: loc, raw: null, moved: false}; return; }
+  const eh = tool === 'select' && e.target.closest('[data-edge]');
+  if (eh){                                              // seret batas panel
+    const k = eh.dataset.edge, ax = k === 'left' || k === 'right' ? 0 : 1;
+    edgeDrag = {k, ax, el: eh, v0: p.measure.bounds[{left: 0, bottom: 1, right: 2, top: 3}[k]], v: null, raw: null};
+    eh.classList.add('on'); return;
+  }
+  if (tool === 'select'){
+    const el = e.target.closest('[data-id]');
+    if (el){
+      const id = el.dataset.id, it0 = p.items.find(i => i.id === id);
+      const members = it0 && it0.group ? p.items.filter(i => i.group === it0.group).map(i => i.id) : [id];
+      if (e.shiftKey){ const on = sel2.has(id); members.forEach(m => on ? sel2.delete(m) : sel2.add(m)); }
+      else if (!sel2.has(id)){ sel2.clear(); members.forEach(m => sel2.add(m)); }
+      selV = null; markSel(); vtxHandles(); renderProps();
+      if (sel2.has(id)){
+        const it = p.items.find(i => i.id === id);
+        drag = {start: loc, anchor: id, c0: it.center, ids: [...sel2], raw: null, dx: null, dy: null, moved: false};
+      }
+    } else if (!e.shiftKey){ sel2.clear(); selV = null; markSel(); vtxHandles(); renderProps(); }
+  } else if (tool === 'place'){
+    placeAt(loc);
+  } else {
+    drawing = {kind: tool, c0: loc, cur: loc};
+    window.__alt = e.altKey; drawing.mgv = mg(); measure({what: tool, c0: loc, cur: loc, ...drawing.mgv}, renderPreview);
+  }
+});
+stage.addEventListener('pointermove', e => {
+  if (!svgEl) return;
+  if (panning){
+    const dx = (e.clientX - panning.x) / panning.k, dy = (e.clientY - panning.y) / panning.k, v = panning.vb;
+    const nv = [v[0] - dx, v[1] - dy, v[2], v[3]];
+    svgEl.setAttribute('viewBox', nv.join(' ')); viewBoxes.set(selected, nv); return;
+  }
+  const loc = toLocal(e);
+  window.__alt = e.altKey;
+  if (vDrag){
+    const dx = loc[0] - vDrag.start[0], dy = loc[1] - vDrag.start[1];
+    if (!vDrag.moved && Math.hypot(dx, dy) * scale2d() < 3) return;
+    vDrag.moved = true; vDrag.raw = vDrag.kind === 'vertex' ? loc : [dx, dy];
+    const body = vDrag.kind === 'vertex' ? {act: 'vertex', i: vDrag.i, to: loc} : {act: 'edge', i: vDrag.i, delta: [dx, dy]};
+    vDrag.mgv = mg(); measure({what: 'outline', pts: curP().measure.outline, ...body, ...vDrag.mgv}, r => { if (!vDrag) return; outPreview(r.pts); showGuides(r.guides); $('coord2d').textContent = r.text; });
+    return;
+  }
+  if (edgeDrag){
+    edgeDrag.raw = loc[edgeDrag.ax];
+    measure({what: 'edge', edge: edgeDrag.k, value: edgeDrag.raw}, r => {
+      if (!edgeDrag) return;
+      edgeDrag.v = r.value;
+      const [sx, sy] = edgeDrag.ax === 0 ? toSvg(r.value, 0) : toSvg(0, r.value), L = edgeDrag.el;
+      if (edgeDrag.ax === 0){ L.setAttribute('x1', sx); L.setAttribute('x2', sx); }
+      else { L.setAttribute('y1', sy); L.setAttribute('y2', sy); }
+      $('coord2d').textContent = r.text;
+    });
+    return;
+  }
+  if (drag){
+    const dx = loc[0] - drag.start[0], dy = loc[1] - drag.start[1];
+    if (!drag.moved && Math.hypot(dx, dy) * scale2d() < 3) return;       // ambang 3 piksel layar
+    drag.moved = true; drag.raw = [dx, dy];
+    drag.mgv = mg(drag.ids);
+    measure({what: 'move', anchor: drag.c0, delta: [dx, dy], ...drag.mgv}, r => {
+      if (!drag) return;
+      drag.dx = r.dx; drag.dy = r.dy; showGuides(r.guides);
+      drag.ids.forEach(id => { const el = svgEl.querySelector(`[data-id="${id}"]`);
+        if (el) el.setAttribute('transform', `translate(${r.dx} ${-r.dy})`); });
+      $('coord2d').textContent = r.text;
+    });
+  } else if (drawing){
+    drawing.cur = loc; drawing.mgv = mg();
+    measure({what: drawing.kind, c0: drawing.c0, cur: loc, ...drawing.mgv}, renderPreview);
+  } else {
+    measure({what: 'point', p: loc}, r => { if (!drag && !drawing) $('coord2d').textContent = r.text; });
+  }
+});
+stage.addEventListener('pointerup', async e => {
+  if (panning){ panning = null; stage.classList.remove('pan'); return; }
+  if (vDrag){
+    const d = vDrag; vDrag = null;
+    if (d.moved && d.raw){
+      const op = d.kind === 'vertex' ? {act: 'vertex', i: d.i, to: d.raw, ...(d.mgv || {})} : {act: 'edge', i: d.i, delta: d.raw};
+      try { await edit([{op: 'outline', panel: selected, step: step() || 1, ...op}]); }
+      catch (err) { toast(err.message); show2d(); }
+    } else if (d.kind === 'edge' && lastEdgeClick.i === d.i && performance.now() - lastEdgeClick.t < 450){   // klik dua kali: sisipkan titik
+      lastEdgeClick = {i: -1, t: 0};
+      try { await edit([{op: 'outline', panel: selected, act: 'insert', i: d.i, step: step() || 1}]); selV = d.i + 1; show2d(); }
+      catch (err) { toast(err.message); show2d(); }
+    } else { if (d.kind === 'edge') lastEdgeClick = {i: d.i, t: performance.now()}; show2d(); }
+    return;
+  }
+  if (edgeDrag){
+    const d = edgeDrag; edgeDrag = null; d.el.classList.remove('on');
+    if (d.raw !== null && d.v !== d.v0) await edit([{op: 'edges', panel: selected, [d.k]: d.raw}]).catch(() => {});
+    else show2d();
+    return;
+  }
+  if (drag){
+    const d = drag; drag = null;
+    if (d.moved && !(d.dx === 0 && d.dy === 0))
+      await edit([{op: 'move', panel: selected, ids: d.ids, anchor: d.anchor, dx: d.raw[0], dy: d.raw[1], step: step(), ...(d.mgv || {})}]).catch(() => {});
+    else show2d();
+  } else if (drawing){
+    const d = drawing; drawing = null;
+    const old = svgEl && svgEl.querySelector('.preview'); if (old) old.remove();
+    try {
+      const r = await edit([{op: 'draw', panel: selected, tool: d.kind, c0: d.c0, cur: d.cur, step: step(), ...(d.mgv || {})}]);
+      sel2.clear(); sel2.add(r.results[0].id); show2d();
+    } catch {}
+  }
+});
+stage.addEventListener('wheel', e => {
+  if (!svgEl) return;
+  e.preventDefault();
+  const k = e.deltaY < 0 ? 0.85 : 1 / 0.85, vb = svgEl.viewBox.baseVal;
+  const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const s = pt.matrixTransform(svgEl.getScreenCTM().inverse());
+  const nv = [s.x - (s.x - vb.x) * k, s.y - (s.y - vb.y) * k, vb.width * k, vb.height * k];
+  svgEl.setAttribute('viewBox', nv.join(' ')); viewBoxes.set(selected, nv); vtxHandles();
+}, {passive: false});
+
+$('tl-select').onclick = () => setTool('select');
+$('tl-circle').onclick = () => setTool('circle');
+$('tl-rect').onclick = () => setTool('rect');
+$('b-del').onclick = deleteSel;
+$('b-copy').onclick = () => copySel();
+$('b-paste').onclick = () => pasteClip(false);
+$('b-dup').onclick = () => { if (copySel(true)) pasteClip(true); };
+$('fit2d').onclick = () => { viewBoxes.delete(selected); show2d(); };
+function zoomView(k){                      // k < 1 = perbesar tampilan, k > 1 = perkecil (hanya tampilan)
+  if (!svgEl) return;
+  const vb = svgEl.viewBox.baseVal, cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2;
+  const nv = [cx - vb.width * k / 2, cy - vb.height * k / 2, vb.width * k, vb.height * k];
+  svgEl.setAttribute('viewBox', nv.join(' ')); viewBoxes.set(selected, nv); vtxHandles();
+}
+$('zoom-in').onclick = () => zoomView(0.8);
+$('zoom-out').onclick = () => zoomView(1.25);
+
+// ---------- dialog: larik ----------
+function dlg(html, small){
+  const old = $('dlg'), d = old.cloneNode(false);      // elemen baru: pendengar acara lama ikut hilang
+  old.replaceWith(d);
+  d.className = small ? 'small' : ''; d.innerHTML = html; d.showModal(); return d;
+}
+function openArray(){
+  const p = curP();
+  if (!p) return toast('Pilih panel dulu');
+  const d = dlg(`<div class="dl"><h3>Larik lubang / kotak di ${p.id} ${esc(p.name)}</h3>
+    <div class="grid2">
+      <label>Bentuk <select id="ar-kind"><option value="circle">Lingkaran</option><option value="rect">Kotak</option></select></label>
+      <label id="ar-dl">Diameter (mm) <input id="ar-d" type="number" value="8" step="0.5"></label>
+      <label id="ar-rl" hidden>Lebar × tinggi × sudut <span class="pair"><input id="ar-w" type="number" value="20"><input id="ar-h" type="number" value="5"><input id="ar-a" type="number" value="0"></span></label>
+      <label>Pusat pertama x, y <span class="pair"><input id="ar-x" type="number" value="14"><input id="ar-y" type="number" value="14"></span></label>
+      <label>Jumlah kolom × baris <span class="pair"><input id="ar-nx" type="number" value="6" min="1"><input id="ar-ny" type="number" value="4" min="1"></span></label>
+      <label>Jarak pusat-ke-pusat x, y (mm) <span class="pair"><input id="ar-px" type="number" value="12"><input id="ar-py" type="number" value="10.4"></span></label>
+      <label>Jarak aman ke tepi / potongan lain (mm) <input id="ar-m" type="number" value="2" step="0.5"></label>
+      <label class="row"><input type="checkbox" id="ar-st" checked> selang-seling (heksagonal)</label>
+      <label class="row"><input type="checkbox" id="ar-av" checked> hindari potongan yang sudah ada</label>
+    </div>
+    <div class="muted" id="ar-info"></div>
+    <div class="foot"><button id="ar-cancel">Batal</button><button class="primary" id="ar-ok">Buat larik</button></div></div>`);
+  const g = id => parseFloat($(id).value);
+  const info = () => { $('ar-info').textContent = `Maksimal ${Math.max(1, g('ar-nx') | 0) * Math.max(1, g('ar-ny') | 0)} bentuk; yang keluar panel atau menabrak dilewati.`; };
+  d.addEventListener('input', info); info();
+  $('ar-kind').onchange = () => { const c = $('ar-kind').value === 'circle'; $('ar-dl').hidden = !c; $('ar-rl').hidden = c; };
+  $('ar-cancel').onclick = () => d.close();
+  $('ar-ok').onclick = async () => {
+    const shape = $('ar-kind').value === 'circle' ? {kind: 'circle', r: g('ar-d') / 2}
+      : {kind: 'rect', size: [g('ar-w'), g('ar-h')], angle: g('ar-a')};
+    try {
+      const r = await edit([{op: 'array', panel: selected, shape, nx: g('ar-nx'), ny: g('ar-ny'), px: g('ar-px'), py: g('ar-py'),
+        start: [g('ar-x'), g('ar-y')], stagger: $('ar-st').checked, margin: g('ar-m'), avoid: $('ar-av').checked}]);
+      const res = r.results[0]; d.close();
+      sel2.clear(); res.ids.forEach(i => sel2.add(i)); show2d();
+      toast(res.ids.length ? `${res.ids.length} bentuk dibuat, ${res.skipped} dilewati` : `Tidak ada yang muat (${res.skipped} dilewati)`);
+    } catch (e) { $('ar-info').textContent = e.message; }
+  };
+}
+$('b-array').onclick = openArray;
+
+// ---------- dialog: generator box ----------
+function openGenerator(){
+  const g = state.generator || {inner: [100, 80, 50], tab: 20, top: true, joints: {}};
+  const j = g.joints || {};
+  const cnt = k => (j[k] && j[k].count) || '';
+  const d = dlg(`<div class="dl"><h3>Generator box akrilik</h3>
+    <div class="muted">Isi ukuran DALAM. Enam panel dengan tab dan slot yang pasti berpasangan dibuat otomatis
+    dan langsung terpasang di rakitan. Panel hasil generator tetap bisa diberi lubang, kotak, dan teks seperti biasa.</div>
+    <div class="grid2">
+      <label>Ukuran dalam: lebar × kedalaman × tinggi (mm)
+        <span class="pair"><input id="gn-w" type="number" step="1" min="10" value="${g.inner[0]}"><input id="gn-d" type="number" step="1" min="10" value="${g.inner[1]}"><input id="gn-h" type="number" step="1" min="10" value="${g.inner[2]}"></span></label>
+      <label>Tebal akrilik (mm) <input id="gn-t" type="number" step="0.5" min="1" value="${state.thickness}"></label>
+      <label>Panjang tab yang diinginkan (mm) <input id="gn-tab" type="number" step="1" min="4" value="${g.tab}"></label>
+      <label class="row"><input type="checkbox" id="gn-top" ${g.top === false ? '' : 'checked'}> pakai tutup atas</label>
+      <label>Jumlah tab per sambungan (kosong = otomatis)
+        <span class="pair"><input id="gn-cv" type="number" min="1" placeholder="tegak" value="${cnt('vertical')}"><input id="gn-cs" type="number" min="1" placeholder="samping" value="${cnt('side')}"><input id="gn-cp" type="number" min="1" placeholder="lebar" value="${cnt('span')}"></span></label>
+    </div>
+    <div id="gn-info" class="muted"></div>
+    <div class="foot">${state.generator ? '<button id="gn-rm" class="danger" style="margin-right:auto">Hapus generator</button>' : ''}
+      <button id="gn-cancel">Batal</button><button class="primary" id="gn-ok">${state.generator ? 'Perbarui box' : 'Buat box'}</button></div></div>`);
+  const body = () => {
+    const f = id => parseFloat($(id).value), joints = {};
+    [['vertical', 'gn-cv'], ['side', 'gn-cs'], ['span', 'gn-cp']].forEach(([k, id]) => { if ($(id).value) joints[k] = {count: f(id)}; });
+    return {inner: [f('gn-w'), f('gn-d'), f('gn-h')], thickness: f('gn-t'), tab: f('gn-tab'), top: $('gn-top').checked, joints};
+  };
+  let seq = 0;
+  const info = async () => {
+    const my = ++seq, b = body();
+    if (b.inner.some(isNaN) || isNaN(b.thickness)) return;
+    try {
+      const r = await (await fetch('/api/measure', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({what: 'box', inner: b.inner, thickness: b.thickness, tab: b.tab || 20, joints: b.joints})})).json();
+      if (my !== seq) return;
+      $('gn-info').innerHTML = `<b>${esc(r.text || '')}</b>` + (r.joints || []).map(x => `<div>${esc(x.text)}</div>`).join('')
+        + (r.notes || []).map(x => `<div>${esc(x)}</div>`).join('') + (r.error ? `<div class="warn" style="color:var(--gagal)">${esc(r.error)}</div>` : '');
+      $('gn-ok').disabled = !!r.error;
+    } catch {}
+  };
+  d.addEventListener('input', info); info();
+  $('gn-cancel').onclick = () => d.close();
+  let armed = false;
+  if ($('gn-rm')) $('gn-rm').onclick = async () => {
+    if (!armed){                                     // klik pertama hanya mengaktifkan; klik kedua menghapus
+      armed = true; $('gn-rm').textContent = 'Yakin? Panel G1–G6 hilang. Klik lagi';
+      setTimeout(() => { armed = false; if ($('gn-rm')) $('gn-rm').textContent = 'Hapus generator'; }, 5000);
+      return;
+    }
+    try { state = await api('/api/generator', {remove: true}); mtime = state.mtime; d.close(); render(false); toast('Generator dihapus'); } catch (e) { $('gn-info').textContent = e.message; }
+  };
+  $('gn-ok').onclick = async () => {
+    $('gn-ok').disabled = true;
+    try {
+      const first = !state.generator;
+      state = await api('/api/generator', body()); mtime = state.mtime; d.close();
+      selected = (state.panels.find(p => p.generated) || {}).id || selected; sel2.clear();
+      render(false); fit();
+      toast(first ? 'Box dibuat dan sudah terpasang di rakitan' : 'Box diperbarui');
+    } catch (e) { $('gn-info').innerHTML = `<span style="color:var(--gagal)">${esc(e.message)}</span>`; $('gn-ok').disabled = false; }
+  };
+}
+$('gen').onclick = openGenerator;
+
+// ---------- pustaka komponen ----------
+let placing = null;
+async function placeAt(loc){
+  if (!placing || !selected) return;
+  try {
+    const r = await edit([{op: 'place', panel: selected, component: placing.name, params: placing.params,
+      rotate: placing.rotate, at: loc, step: step()}]);
+    sel2.clear(); r.results[0].ids.forEach(i => sel2.add(i)); show2d(); toast(r.results[0].text + ' (Esc = selesai)');
+  } catch {}
+}
+async function openComponents(){
+  if (!curP()) return toast('Pilih panel dulu');
+  let cat;
+  try { cat = await (await fetch('/api/components')).json(); } catch { return toast('Pustaka komponen tidak bisa dimuat'); }
+  const d = dlg(`<div class="dl"><h3>Pustaka komponen</h3>
+    <div class="tr"><div class="ctl">
+      <label>Komponen <select id="cp-name">${cat.map(c => `<option value="${c.name}">${esc(c.label)}</option>`).join('')}</select></label>
+      <div id="cp-note" class="muted"></div>
+      <fieldset><legend>Ukuran</legend><div id="cp-params" class="ctl"></div></fieldset>
+      <label>Putar <select id="cp-rot"><option value="0">0°</option><option value="90">90°</option></select></label>
+      <label>Letak pusat (x, y mm), kosong = tengah panel <span class="pair"><input id="cp-x" type="number" placeholder="x"><input id="cp-y" type="number" placeholder="y"></span></label>
+    </div><div><div class="pv" id="cp-pv"></div><div class="stat" id="cp-info"></div></div></div>
+    <div class="muted">Ukuran umum; cocokkan dengan komponen Anda sebelum memotong. Satu komponen = satu grup: bergerak dan terhapus bersama.</div>
+    <div class="foot"><button id="cp-cancel">Batal</button><button id="cp-click">Pilih titik di panel…</button><button class="primary" id="cp-ok">Tempatkan</button></div></div>`);
+  const cur = () => cat.find(c => c.name === $('cp-name').value);
+  const params = () => Object.fromEntries([...d.querySelectorAll('[data-p]')].map(e => [e.dataset.p, parseFloat(e.value)]));
+  const drawParams = () => {
+    const c = cur(); $('cp-note').textContent = c.note;
+    $('cp-params').innerHTML = c.params.map(q => q.type === 'select'
+      ? `<label>${esc(q.label)}<select data-p="${q.key}">${q.options.map(o => `<option value="${o[1]}"${o[1] === q.default ? ' selected' : ''}>${esc(o[0])}</option>`).join('')}</select></label>`
+      : `<label>${esc(q.label)}<input type="number" data-p="${q.key}" value="${q.default}" step="${q.step}" min="${q.min}"></label>`).join('');
+  };
+  let seq = 0;
+  const preview = async () => {
+    const my = ++seq;
+    try {
+      const r = await (await fetch('/api/measure', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({what: 'component', name: $('cp-name').value, params: params(), rotate: +$('cp-rot').value, step: 0})})).json();
+      if (my !== seq) return;
+      const bad = !!r.error;
+      $('cp-ok').disabled = $('cp-click').disabled = bad;
+      if (bad){ $('cp-pv').innerHTML = ''; $('cp-info').innerHTML = `<span style="color:var(--gagal)">${esc(r.error)}</span>`; return; }
+      const [x0, y0, x1, y1] = r.bounds, pad = 4;
+      const el = r.shapes.map(sh => sh.kind === 'circle'
+        ? `<circle cx="${sh.center[0]}" cy="${-sh.center[1]}" r="${sh.r}"/>`
+        : `<rect x="${sh.center[0] - sh.size[0] / 2}" y="${-sh.center[1] - sh.size[1] / 2}" width="${sh.size[0]}" height="${sh.size[1]}" transform="rotate(${-sh.angle} ${sh.center[0]} ${-sh.center[1]})"/>`).join('');
+      $('cp-pv').innerHTML = `<svg viewBox="${x0 - pad} ${-y1 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}" style="color:var(--text)">
+        <g fill="color-mix(in srgb,var(--accent) 18%,transparent)" stroke="currentColor" stroke-width="1.2" vector-effect="non-scaling-stroke">${el}</g></svg>`;
+      $('cp-info').textContent = r.text;
+    } catch {}
+  };
+  d.addEventListener('input', e => { if (e.target.id === 'cp-name'){ drawParams(); } if (!/^cp-(x|y)$/.test(e.target.id)) preview(); });
+  d.addEventListener('change', e => { if (e.target.id === 'cp-rot') preview(); });
+  drawParams(); preview();
+  const build = () => ({name: $('cp-name').value, params: params(), rotate: +$('cp-rot').value});
+  $('cp-cancel').onclick = () => d.close();
+  $('cp-click').onclick = () => {
+    placing = build(); d.close(); tab(false); setTool('place');
+    toast('Klik di panel untuk menaruh komponen; klik lagi untuk menaruh lagi; Esc untuk selesai', 6000);
+  };
+  $('cp-ok').onclick = async () => {
+    const x = $('cp-x').value, y = $('cp-y').value, b = build();
+    try {
+      const r = await edit([{op: 'place', panel: selected, component: b.name, params: b.params, rotate: b.rotate,
+        at: x !== '' && y !== '' ? [parseFloat(x), parseFloat(y)] : null, step: step()}]);
+      d.close(); sel2.clear(); r.results[0].ids.forEach(i => sel2.add(i)); show2d(); tab(false); toast(r.results[0].text);
+    } catch (e) { $('cp-info').innerHTML = `<span style="color:var(--gagal)">${esc(e.message)}</span>`; }
+  };
+}
+$('b-comp').onclick = openComponents;
+$('del3d').onclick = () => deletePanel(selected);
+$('e-del').onclick = () => deletePanel(selected);
+
+// ---------- bagi sisi: tab selang-seling otomatis ----------
+function openDivide(){
+  const p = curP();
+  if (!p) return toast('Pilih panel dulu');
+  const others = state.panels.filter(x => x.id !== p.id);
+  const edges = [['bottom', 'bawah'], ['top', 'atas'], ['left', 'kiri'], ['right', 'kanan']];
+  const eopt = (sel, blank) => (blank ? '<option value="">sama</option>' : '') + edges.map(([v, t]) => `<option value="${v}"${v === sel ? ' selected' : ''}>${t}</option>`).join('');
+  const d = dlg(`<div class="dl"><h3>Bagi sisi: tab selang-seling otomatis (${p.id} ${esc(p.name)})</h3>
+    <div class="muted">Sisi dibagi menjadi N bagian sama panjang; tab mengisi bagian selang-seling. Panjang tab dan jaraknya dihitung backend.
+    Bila panel pasangan dipilih, slot pasangannya dibuat dengan pembagian yang sama persis, jadi pasti pas.</div>
+    <div class="tr"><div class="ctl">
+      <fieldset><legend>Panel ini</legend>
+        <label>Sisi <select id="dv-edge">${eopt('bottom')}</select></label>
+        <label>Jumlah bagian <input id="dv-parts" type="number" min="1" max="41" value="3"></label>
+        <label>Pola <select id="dv-pat"><option value="alternate|tab">Selang-seling, mulai dari tab</option><option value="alternate|gap">Selang-seling, mulai dari jarak</option><option value="centered|tab">Tab di tengah tiap bagian</option></select></label>
+        <label>Panjang tab (pola tengah; kosong = otomatis) <input id="dv-tab" type="number" min="1" step="1"></label>
+        <label>Jarak dari kedua ujung (mm) <input id="dv-margin" type="number" min="0" step="1" value="0"></label>
+        <label>Jenis <select id="dv-mode"><option value="tab">Tab keluar dari tepi</option><option value="slot">Slot di dalam panel</option></select></label>
+        <label>Kedalaman tab / lebar slot (kosong = tebal ${state.thickness} mm) <input id="dv-depth" type="number" min="0.5" step="0.5"></label>
+        <label>Jarak pusat slot dari tepi (kosong = otomatis) <input id="dv-inset" type="number" step="0.5"></label>
+        <label title="Hanya mode slot. 0 = dekat tepi; 1 = satu baris tepat di tengah panel; 2 atau lebih = dibagi rata (mis. 2 baris di sepertiga dan dua pertiga)">Slot di tengah panel: jumlah baris <input id="dv-rows" type="number" min="0" max="12" step="1" value="0"></label>
+        <label>Celah slot (mm): + longgar, − pas ketat/mengunci <input id="dv-clear" type="number" step="0.05" min="-2" max="2" value="0"></label>
+        <label class="row"><input type="checkbox" id="dv-replace" checked> ganti tab lama di sisi ini</label>
+        <label class="row"><input type="checkbox" id="dv-corner" checked> kurangi panjang di kedua ujung sebesar slot sisi lain yang sudah ada di sudut</label>
+      </fieldset>
+      <fieldset><legend>Pasangan di panel lain (opsional)</legend>
+        <label class="row"><input type="checkbox" id="dv-mate"> buat pasangannya</label>
+        <label>Panel <select id="dv-mp">${others.map(x => `<option value="${x.id}">${x.id} ${esc(x.name)}</option>`).join('')}</select></label>
+        <label>Sisi acuan di panel pasangan <select id="dv-me">${eopt('', true)}</select></label>
+        <label>Awal sisi ini sepanjang pasangan (mm) <input id="dv-mo" type="number" step="1" value="0"></label>
+        <label>Jarak pusat garis dari tepi pasangan (kosong = otomatis) <input id="dv-mi" type="number" step="0.5"></label>
+        <label class="row"><input type="checkbox" id="dv-mirror"> balik urutan (panel berhadapan)</label>
+      </fieldset>
+    </div><div><div class="stat" id="dv-info" style="margin-top:0"></div></div></div>
+    <div class="foot"><button id="dv-cancel">Batal</button><button class="primary" id="dv-ok">Terapkan</button></div></div>`);
+  const val = id => { const v = $(id).value; return v === '' ? null : parseFloat(v); };
+  const body = () => {
+    const [pattern, start] = $('dv-pat').value.split('|');
+    const o = {panel: p.id, edge: $('dv-edge').value, parts: val('dv-parts'), pattern, start, tab: val('dv-tab'),
+      margin: val('dv-margin') || 0, mode: $('dv-mode').value, depth: val('dv-depth'), inset: val('dv-inset'), replace: $('dv-replace').checked, clearance: val('dv-clear') || 0, rows: val('dv-rows') || 0, corner: $('dv-corner').checked};
+    if ($('dv-mate').checked && $('dv-mp').value)
+      o.mate = {panel: $('dv-mp').value, edge: $('dv-me').value || null, offset: val('dv-mo') || 0, inset: val('dv-mi'), mirror: $('dv-mirror').checked};
+    return o;
+  };
+  let seq = 0;
+  const preview = async () => {
+    const my = ++seq, b = body();
+    try {
+      const r = await (await fetch('/api/measure', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({what: 'divide', panel: b.panel, edge: b.edge, parts: b.parts, pattern: b.pattern, start: b.start, tab: b.tab, margin: b.margin, mode: b.mode, depth: b.depth, inset: b.inset, corner: b.corner, clearance: b.clearance})})).json();
+      if (my !== seq) return;
+      if (r.error){ $('dv-info').innerHTML = `<span style="color:var(--gagal)">${esc(r.error)}</span>`; $('dv-ok').disabled = true; return; }
+      $('dv-ok').disabled = false;
+      $('dv-info').innerHTML = `<b>${esc(r.summary)}</b><div>sisi sepanjang ${r.length} mm</div><div style="margin-top:6px">${esc(r.text)}</div>${r.slot_text ? `<div style="margin-top:6px">${esc(r.slot_text)}</div>` : ''}`
+        + r.notes.map(n => `<div class="warn" style="color:var(--awas)">${esc(n)}</div>`).join('');
+    } catch {}
+  };
+  d.addEventListener('input', preview); d.addEventListener('change', preview); preview();
+  $('dv-cancel').onclick = () => d.close();
+  $('dv-ok').onclick = async () => {
+    try {
+      const r = await edit([{op: 'divide', ...body()}]);
+      d.close(); sel2.clear(); r.results[0].ids.forEach(i => sel2.add(i)); show2d();
+      toast(r.results[0].text, 7000, {label: 'Urungkan', run: undo});
+    } catch (e) { $('dv-info').innerHTML = `<span style="color:var(--gagal)">${esc(e.message)}</span>`; }
+  };
+}
+$('b-divide').onclick = openDivide;
+
+// ---------- slot otomatis: lubang pasangan untuk tab ----------
+function openAutoJoint(){
+  const opts = sel => state.panels.map(p => `<option value="${p.id}"${p.id === sel ? ' selected' : ''}>${p.id} ${esc(p.name)}</option>`).join('');
+  const d = dlg(`<div class="dl"><h3>Sambungan otomatis</h3>
+    <div class="muted">Pilih panel yang diberi <b>tab</b> dan panel yang diberi <b>slot</b>. Backend mencari sisi panel pertama yang menempel ke
+    permukaan panel kedua di rakitan 3D, membuat tab selang-seling di sisi itu, lalu memotong slot pasangannya tepat di posisi tab.
+    Kedua panel harus sudah ditempatkan di rakitan.</div>
+    <div class="grid2" style="margin-top:8px">
+      <label>Panel bertab <select id="aj-a">${opts(selected)}</select></label>
+      <label>Panel berslot <select id="aj-b">${opts(null)}</select></label>
+      <label>Jumlah bagian <input id="aj-parts" type="number" min="2" max="41" value="5"></label>
+      <label>Pola <select id="aj-pat"><option value="alternate|tab">Selang-seling, mulai dari tab</option><option value="alternate|gap">Selang-seling, mulai dari jarak</option><option value="centered|tab">Tab di tengah tiap bagian</option></select></label>
+      <label>Jarak dari kedua ujung (mm) <input id="aj-margin" type="number" min="0" step="1" value="0"></label>
+      <label>Celah slot (mm): + longgar, − pas ketat <input id="aj-clear" type="number" step="0.05" min="-2" max="2" value="0"></label>
+    </div><div class="stat" id="aj-info" style="margin-top:8px"></div>
+    <div class="foot"><button id="aj-slots">Slot saja (tab sudah ada)…</button><button id="aj-cancel">Batal</button><button class="primary" id="aj-ok">Buat sambungan</button></div></div>`);
+  if (state.panels.length > 1 && $('aj-a').value === $('aj-b').value) $('aj-b').selectedIndex = ($('aj-a').selectedIndex + 1) % state.panels.length;
+  $('aj-cancel').onclick = () => d.close();
+  $('aj-slots').onclick = () => { d.close(); openAutoSlots(); };
+  $('aj-ok').onclick = async () => {
+    $('aj-ok').disabled = true; $('aj-info').textContent = 'menghitung…';
+    const [pattern, start] = $('aj-pat').value.split('|');
+    try {
+      const r = await edit([{op: 'auto_joint', from: $('aj-a').value, to: $('aj-b').value, parts: parseFloat($('aj-parts').value) || 5,
+        pattern, start, margin: parseFloat($('aj-margin').value) || 0, clearance: parseFloat($('aj-clear').value) || 0}]);
+      d.close(); toast(r.results[0].text, 9000, {label: 'Urungkan', run: undo});
+    } catch (e) { $('aj-info').innerHTML = `<span style="color:var(--gagal)">${esc(e.message)}</span>`; $('aj-ok').disabled = false; }
+  };
+}
+function openAutoSlots(){
+  const ids = state.panels.map(p => p.id);
+  const d = dlg(`<div class="dl"><h3>Slot otomatis dari tab</h3>
+    <div class="muted">Untuk tiap tab yang masuk ke bagian pejal panel lain (di 3D tampak tidak berlubang), backend memotong slot di panel lawan
+    tepat di penampang tab itu, lalu memeriksa ulang. Panel harus sudah ditempatkan di rakitan.</div>
+    <div class="grid2" style="margin-top:8px">
+      <label>Tab milik panel <select id="as-src"><option value="">semua panel</option>${ids.map(i => `<option value="${i}">${i} ${esc((state.panels.find(p => p.id === i) || {}).name || '')}</option>`).join('')}</select></label>
+      <label>Celah slot (mm): + longgar, − pas ketat <input id="as-clear" type="number" step="0.05" min="-2" max="2" value="0"></label>
+    </div><div class="stat" id="as-info" style="margin-top:8px"></div>
+    <div class="foot"><button id="as-cancel">Batal</button><button class="primary" id="as-ok">Buat slot</button></div></div>`, true);
+  $('as-cancel').onclick = () => d.close();
+  $('as-ok').onclick = async () => {
+    $('as-ok').disabled = true; $('as-info').textContent = 'menghitung…';
+    try {
+      const r = await edit([{op: 'auto_slots', from: $('as-src').value || null, clearance: parseFloat($('as-clear').value) || 0}]);
+      d.close(); toast(r.results[0].text, 9000, r.results[0].count ? {label: 'Urungkan', run: undo} : undefined);
+    } catch (e) { $('as-info').textContent = e.message; $('as-ok').disabled = false; }
+  };
+}
+$('b-autoslot').onclick = openAutoJoint;
+
+// ---------- dialog: panel baru ----------
+function openNewPanel(){
+  const d = dlg(`<div class="dl"><h3>Panel baru</h3>
+    <div class="grid2"><label>Nama <input id="np-n" type="text" value="panel_baru"></label>
+      <label>Lebar × tinggi (mm) <span class="pair"><input id="np-w" type="number" value="100"><input id="np-h" type="number" value="60"></span></label></div>
+    <div class="muted">Panel kotak kosong. Beri lubang dengan alat Lingkaran / Kotak / Larik, atau buat dari gambar lewat "Gambar → bentuk".</div>
+    <div class="foot"><button id="np-cancel">Batal</button><button class="primary" id="np-ok">Buat</button></div></div>`, true);
+  $('np-cancel').onclick = () => d.close();
+  $('np-ok').onclick = async () => {
+    try {
+      const r = await edit([{op: 'new_panel', name: $('np-n').value.trim(), size: [parseFloat($('np-w').value), parseFloat($('np-h').value)]}]);
+      d.close(); selected = r.results[0].id; sel2.clear(); renderList(); showSelected(); tab(false);
+    } catch (e) { toast(e.message); }
+  };
+}
+$('newpanel').onclick = () => { openNewPanel(); };
+
+// ---------- dialog: gambar -> bentuk ----------
+const T = {dataUrl: '', timer: null, seq: 0, res: null, showMask: false};
+function prepImage(file){
+  return new Promise((ok, bad) => {
+    const fr = new FileReader();
+    fr.onerror = () => bad(new Error('file tidak terbaca'));
+    fr.onload = () => {
+      const im = new Image();
+      im.onerror = () => bad(new Error('bukan gambar yang dikenal (pakai PNG atau JPG)'));
+      im.onload = () => {
+        const k = Math.min(1, 1600 / Math.max(im.width, im.height));
+        if (k === 1 && file.size < 3e6) return ok(fr.result);
+        const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+        ok(file.type === 'image/png' && c.width * c.height < 2.5e6 ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.92));
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function traceParams(){
+  const g = id => parseFloat($(id).value), c = id => $(id).checked;
+  const p = {mode: $('tr-mode').value, contrast: g('tr-con'), brightness: g('tr-bri'), clahe: c('tr-clahe'),
+    blur: g('tr-blur'), threshold: c('tr-auto') ? -1 : g('tr-thr'), invert: c('tr-inv'), close: g('tr-close'),
+    holes: !c('tr-nohole'), drop_border: c('tr-border'), min_area_mm2: g('tr-min'), simplify_mm: g('tr-simp')};
+  const v = g('tr-sv') || 0, k = $('tr-sk').value;
+  if (k === 'w') p.width_mm = v; else if (k === 'h') p.height_mm = v; else p.ppmm = v;
+  return p;
+}
+function scheduleTrace(){
+  clearTimeout(T.timer); T.timer = setTimeout(runTrace, 280);
+  $('tr-st').textContent = 'memproses…';
+}
+async function runTrace(){
+  if (!T.dataUrl) return;
+  const my = ++T.seq;
+  try {
+    const res = await fetch('/api/trace', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({image: T.dataUrl, params: traceParams()})});
+    const r = await res.json();
+    if (my !== T.seq) return;
+    if (!res.ok) throw new Error(r.error);
+    T.res = r; drawTrace();
+  } catch (e) { if (my === T.seq) { $('tr-st').innerHTML = `<span class="warn">${esc(e.message)}</span>`; $('tr-ok').disabled = true; } }
+}
+function drawTrace(){
+  const r = T.res, [W, H] = r.img_size;
+  const path = s => [s.exterior, ...s.holes].map(ring => 'M' + ring.map(p => p.map(v => v.toFixed(1)).join(',')).join('L') + 'Z').join('');
+  $('tr-pv').innerHTML = `<svg viewBox="0 0 ${W} ${H}"><image href="${T.dataUrl}" width="${W}" height="${H}"/>
+    ${$('tr-mask').checked ? `<image href="${r.mask}" width="${W}" height="${H}" opacity=".55"/>` : ''}
+    ${r.px_shapes.map(s => `<path d="${path(s)}" fill="rgba(147,51,234,.22)" fill-rule="evenodd" stroke="#e11d48" stroke-width="${Math.max(1.5, W / 450)}" vector-effect="non-scaling-stroke"/>`).join('')}</svg>`;
+  const n = r.shapes.length;
+  $('tr-st').innerHTML = n
+    ? `<b>${n}</b> bentuk · kotak pembatas <b>${r.size_mm[0]} × ${r.size_mm[1]} mm</b> · skala ${r.ppmm} px/mm · ${r.vertices} titik`
+      + r.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')
+    : r.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('');
+  $('tr-ok').disabled = !n;
+}
+function openTrace(){
+  const panels = state.panels, cur = curP();
+  const d = dlg(`<div class="dl"><h3>Gambar → bentuk berukuran nyata</h3>
+    <div class="tr"><div class="ctl">
+      <label>Gambar (PNG / JPG)<input type="file" id="tr-file" accept="image/*"></label>
+      <fieldset><legend>Skala nyata</legend>
+        <label>Ukuran yang diketahui <span class="pair"><select id="tr-sk"><option value="w">Lebar seluruh bentuk</option><option value="h">Tinggi seluruh bentuk</option><option value="p">Piksel per mm</option></select>
+        <input type="number" id="tr-sv" value="100" min="0.1" step="0.5"></span></label>
+        <span class="muted">Isi ukuran sebenarnya (mm) dari kotak pembatas semua bentuk. Ketelitian ± 1 piksel gambar.</span></fieldset>
+      <fieldset><legend>Pisahkan objek dari latar</legend>
+        <label>Cara <select id="tr-mode"><option value="ambang">Ambang (bentuk jelas / siluet)</option><option value="adaptif">Adaptif (foto kertas, cahaya tak rata)</option><option value="tepi">Tepi (objek tanpa isi seragam)</option></select></label>
+        <label>Kontras <span id="v-con">1.0</span><input type="range" id="tr-con" min="0.5" max="6" step="0.1" value="1"></label>
+        <label>Kecerahan <span id="v-bri">0</span><input type="range" id="tr-bri" min="-100" max="100" step="5" value="0"></label>
+        <label>Blur (haluskan bintik) <span id="v-blur">1</span><input type="range" id="tr-blur" min="1" max="15" step="2" value="1"></label>
+        <label class="row"><input type="checkbox" id="tr-auto" checked> ambang otomatis (Otsu)</label>
+        <label>Ambang <span id="v-thr">128</span><input type="range" id="tr-thr" min="0" max="255" step="1" value="128"></label>
+        <label class="row"><input type="checkbox" id="tr-inv"> objek lebih terang dari latar</label>
+        <label class="row"><input type="checkbox" id="tr-clahe"> ratakan kontras lokal (CLAHE)</label>
+      </fieldset>
+      <fieldset><legend>Rapikan hasil</legend>
+        <label>Tutup celah <span id="v-close">3</span><input type="range" id="tr-close" min="0" max="12" step="1" value="3"></label>
+        <label>Buang bintik &lt; (mm²) <input type="number" id="tr-min" value="4" min="0" step="1"></label>
+        <label>Sederhanakan garis (mm) <input type="number" id="tr-simp" value="0.2" min="0" step="0.05"></label>
+        <label class="row"><input type="checkbox" id="tr-nohole"> abaikan lubang di dalam bentuk</label>
+        <span class="muted">Gambar berupa garis outline saja? Centang ini agar bagian dalam garis ikut menjadi bentuk penuh.</span>
+        <label class="row"><input type="checkbox" id="tr-border"> buang yang menyentuh tepi gambar</label>
+      </fieldset>
+      <fieldset><legend>Pakai hasilnya</legend>
+        <label>Sebagai <select id="tr-target"><option value="cut">Potongan pada panel…</option><option value="new_panel">Panel baru (bentuk terbesar = outline)</option></select></label>
+        <label id="tr-pl">Panel <select id="tr-panel">${panels.map(p => `<option value="${p.id}"${cur && cur.id === p.id ? ' selected' : ''}>${p.id} ${esc(p.name)}</option>`).join('')}</select></label>
+        <label id="tr-atl">Letak pusat (x, y mm) — kosong = tengah panel <span class="pair"><input type="number" id="tr-x" placeholder="x"><input type="number" id="tr-y" placeholder="y"></span></label>
+        <label>Jenis <select id="tr-role"><option value="cut">potong</option><option value="guide">garis bantu saja</option></select></label>
+        <label id="tr-nm" hidden>Nama panel <input type="text" id="tr-name" value="dari_gambar"></label>
+      </fieldset>
+    </div>
+    <div><div class="pv" id="tr-pv"><span class="muted">Pilih gambar untuk memulai.</span></div>
+      <label class="row" style="display:flex;gap:6px;margin-top:6px"><input type="checkbox" id="tr-mask"> tampilkan hasil pemisahan (putih = objek)</label>
+      <div class="stat" id="tr-st"></div></div></div>
+    <div class="foot"><button id="tr-cancel">Batal</button><button class="primary" id="tr-ok" disabled>Terapkan</button></div></div>`);
+  T.dataUrl = ''; T.res = null;
+  const sync = () => {
+    ['con', 'bri', 'blur', 'thr', 'close'].forEach(k => { $('v-' + k).textContent = $('tr-' + k).value; });
+    $('tr-thr').disabled = $('tr-auto').checked;
+    const nw = $('tr-target').value === 'new_panel';
+    $('tr-pl').hidden = $('tr-atl').hidden = nw; $('tr-nm').hidden = !nw;
+  };
+  d.addEventListener('input', e => { sync(); if (T.dataUrl && e.target.id !== 'tr-file' && !/^tr-(target|panel|x|y|role|name)$/.test(e.target.id)) scheduleTrace(); });
+  d.addEventListener('change', e => { if (e.target.id === 'tr-mask' && T.res) drawTrace(); });
+  sync();
+  $('tr-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { T.dataUrl = await prepImage(f); scheduleTrace(); } catch (er) { $('tr-st').innerHTML = `<span class="warn">${esc(er.message)}</span>`; }
+  };
+  $('tr-cancel').onclick = () => { T.seq++; d.close(); };
+  $('tr-ok').onclick = async () => {
+    const x = $('tr-x').value, y = $('tr-y').value, mode = $('tr-target').value;
+    const body = {image: T.dataUrl, params: traceParams(), mode, target: $('tr-panel').value, role: $('tr-role').value,
+      name: $('tr-name').value.trim(), at: x !== '' && y !== '' ? [parseFloat(x), parseFloat(y)] : null, anchor: 'center'};
+    $('tr-ok').disabled = true; $('tr-st').textContent = 'menerapkan…';
+    try {
+      const r = await api('/api/trace/apply', body, true);
+      state.panels = r.panels; mtime = r.mtime; stale = true;
+      const a = r.applied;
+      d.close(); T.seq++;
+      selected = a.panel; sel2.clear(); (a.ids || []).forEach(i => sel2.add(i));
+      renderList(); showSelected(); tab(false); scheduleReload();
+      toast(mode === 'new_panel' ? `Panel ${a.panel} dibuat: ${a.size_mm[0]} × ${a.size_mm[1]} mm, ${a.shapes} potongan`
+        : `${a.shapes} bentuk ditempel di ${a.panel} (${a.size_mm[0]} × ${a.size_mm[1]} mm)`, 5000);
+    } catch (e) { $('tr-st').innerHTML = `<span class="warn">${esc(e.message)}</span>`; $('tr-ok').disabled = false; }
+  };
+}
+$('b-trace').onclick = openTrace;
+
+// ---------- tombol umum ----------
+$('removed').addEventListener('click', async e => {
+  const b = e.target.closest('[data-restore]'); if (!b) return;
+  try { await edit([{op: 'restore_panel', panel: b.dataset.restore}]); await load(false); toast(`${b.dataset.restore} dipulihkan`); } catch {}
+});
+$('plist').addEventListener('click', e => {
+  const x = e.target.closest('[data-del]'); if (x){ e.stopPropagation(); deletePanel(x.dataset.del); return; }
+  const r = e.target.closest('.row'); if (r) select(r.dataset.id);
+});
+$('report').addEventListener('click', e => { const r = e.target.closest('.it'); if (r && r.dataset.p) select(r.dataset.p.split(',')[0]); });
+$('apply').onclick = () => postSpec({thickness: +$('thk').value, kerf: +$('kerf').value}).catch(() => {});
+$('e-save').onclick = () => {
+  try {
+    const pl = {origin: vec($('e-origin').value, 'origin'), u: vec($('e-u').value, 'u'), v: vec($('e-v').value, 'v')};
+    if (typeof pl.origin === 'string') throw new Error('origin: tulis 3 angka (x, y, z)');
+    postSpec({panels: {[selected]: {name: $('e-name').value.trim(), placement: pl}}}).catch(() => {});
+  } catch (e) { $('err').textContent = e.message; }
+};
+$('e-clear').onclick = () => postSpec({panels: {[selected]: {placement: null}}}).catch(() => {});
+$('export').onclick = async () => {
+  try { const r = await api('/api/export', {}); $('err').style.color = 'var(--ok)';
+    $('err').textContent = 'Tersimpan:\n' + r.files.join('\n'); setTimeout(() => $('err').style.color = '', 50); } catch {}
+};
+['explode', 'showcol', 'xray'].forEach(id => $(id).addEventListener('input', applyView));
+$('fit').onclick = () => fit();
+$('e-color').oninput = () => {                // pratinjau langsung di 3D, disimpan saat dilepas
+  const m = meshes.get(selected); if (m) m.mesh.material.color.set($('e-color').value);
+};
+$('e-color').onchange = () => { if (selected) postSpec({panels: {[selected]: {color: $('e-color').value}}}).catch(() => {}); };
+$('e-color-reset').onclick = () => { if (selected) postSpec({panels: {[selected]: {color: null}}}).catch(() => {}); };
+function setBg(v, save){
+  const c = v === 'custom' ? $('bg3d-c').value : v;
+  $('bg3d-c').hidden = v !== 'custom';
+  host.style.background = c || '';
+  if (save) { try { localStorage.setItem('bg3d', JSON.stringify({v, c: $('bg3d-c').value})); } catch {} }
+}
+$('bg3d').onchange = () => setBg($('bg3d').value, true);
+$('bg3d-c').oninput = () => setBg('custom', true);
+try { const b = JSON.parse(localStorage.getItem('bg3d') || 'null'); if (b){ $('bg3d').value = b.v; $('bg3d-c').value = b.c; setBg(b.v, false); } } catch {}
+$('e-snap').onclick = () => {
+  if (!selected) return toast('Pilih panel dulu');
+  const others = state.panels.filter(p => p.id !== selected);
+  const d = dlg(`<div class="dl"><h3>Tempelkan ${esc(selected)} ke panel lain</h3>
+    <div class="muted">Panel digeser sampai permukaannya menyentuh permukaan panel tujuan (jarak awal maksimal 30 mm). Pilih "terdekat" untuk menempel ke permukaan yang paling dekat, atau pilih satu panel bila ada dua dinding berhadapan.</div>
+    <label style="margin-top:8px">Tempelkan ke <select id="sn-to"><option value="">permukaan terdekat (semua panel)</option>${others.map(p => `<option value="${p.id}">${p.id} ${esc(p.name)}</option>`).join('')}</select></label>
+    <div class="stat" id="sn-info" style="margin-top:8px"></div>
+    <div class="foot"><button id="sn-cancel">Batal</button><button class="primary" id="sn-ok">Tempelkan</button></div></div>`, true);
+  $('sn-cancel').onclick = () => d.close();
+  $('sn-ok').onclick = async () => {
+    try {
+      const r = await api('/api/edit', {ops: [{op: 'place_move', panel: selected, delta: [0, 0, 0], magnet: true, tol: 30, target: $('sn-to').value || null}]}, true);
+      d.close(); await load(false); toast(r.results[0].text, 7000, {label: 'Urungkan', run: undo});
+    } catch (e) { $('sn-info').textContent = e.message; }
+  };
+};
+$('m-sp').onclick = () => { localSpace = !localSpace; tc.setSpace(localSpace ? 'local' : 'world');
+  $('m-sp').textContent = 'Sumbu: ' + (localSpace ? 'panel' : 'dunia'); syncPivot(); };
+$('m-g').onclick = () => setMode('translate'); $('m-r').onclick = () => setMode('rotate');
+$('snap-t').oninput = $('snap-r').oninput = setSnap; setSnap();
+$('undo').onclick = undo; $('redo').onclick = redo;
+function tab(on3){
+  is2d = !on3;
+  $('t3').classList.toggle('on', on3); $('bar3d').hidden = !on3;
+  $('view3d').style.display = on3 ? '' : 'none'; $('view2d').style.display = on3 ? 'none' : 'grid';
+  applyView(); resize();
+}
+$('t3').onclick = $('t3b').onclick = () => tab(true);
+$('t2').onclick = $('t2b').onclick = () => tab(false);
+addEventListener('keydown', e => {
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || $('dlg').open) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && k === 'y'){ e.preventDefault(); redo(); return; }
+  if ((e.ctrlKey || e.metaKey) && is2d && (k === 'c' || k === 'v' || k === 'd')){
+    e.preventDefault();
+    if (k === 'c') copySel(); else if (k === 'v') pasteClip(false); else if (copySel(true)) pasteClip(true);
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && k === 'g' && is2d){ e.preventDefault(); groupSel(!e.shiftKey); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (is2d){
+    if (k === ' '){ spaceDown = true; e.preventDefault(); }
+    else if (k === 'v') setTool('select');
+    else if (k === 'c') setTool('circle');
+    else if (k === 'b') setTool('rect');
+    else if (k === '+' || k === '=') zoomView(0.8);
+    else if (k === '-') zoomView(1.25);
+    else if (k === 'delete' || k === 'backspace'){ e.preventDefault(); if (selV !== null && !sel2.size) delVertex(); else deleteSel(); }
+    else if (k === 'escape'){ if (tool !== 'select') setTool('select'); else { sel2.clear(); selV = null; markSel(); vtxHandles(); renderProps(); } }
+    return;
+  }
+  if (k === 'g') setMode('translate');
+  else if (k === 'r') setMode('rotate');
+  else if (k === 'x' || k === 'y' || k === 'z') lockAxis(k.toUpperCase());
+  else if (k === 'delete' && selected) deletePanel(selected);
+  else if (k === 'escape') select(null);
+});
+addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
+if (location.hash.length > 1) selected = location.hash.slice(1).split(',')[0];
+
+// peringatan bila server yang melayani halaman ini berkode lama (mis. server lama belum ditutup)
+(async () => {
+  try {
+    const r = await (await fetch('/api/ping')).json();
+    if (r.stale) toast('Server ini memakai kode lama. Tutup server lama (Ctrl+C), jalankan ulang, lalu muat ulang halaman.', 20000);
+  } catch {}
+})();
+
+// muat ulang otomatis bila file proyek diubah dari luar (CLI / LLM)
+setInterval(async () => {
+  try { const r = await (await fetch('/api/mtime')).json(); if (state && !stale && r.mtime !== mtime) load(false); } catch {}
+}, 2000);
+resize();
+load(true).then(() => { if (/,2d$/.test(location.hash)) tab(false); }).catch(() => {});
+window.__app = {tab, select, get state(){ return state; }, tc, pivot, meshes, THREE};
+</script>
+</body>
+</html>

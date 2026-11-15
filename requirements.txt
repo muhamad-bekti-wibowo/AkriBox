@@ -1,0 +1,8 @@
+pymupdf
+shapely
+trimesh
+manifold3d
+mapbox-earcut
+ezdxf
+numpy
+opencv-python-headless
